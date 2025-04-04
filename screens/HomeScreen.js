@@ -1,4 +1,7 @@
 import React from 'react';
+import { useNavigation } from '@react-navigation/native';
+
+
 import {
   View,
   Text,
@@ -10,16 +13,21 @@ import {
 } from 'react-native';
 import { Ionicons, MaterialIcons, FontAwesome } from '@expo/vector-icons';
 
+
+
 export default function HomeScreen() {
+  const navigation = useNavigation();
+  
+
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.logo}>ServMe</Text>
-        <TouchableOpacity>
-          <Ionicons name="person-circle-outline" size={32} color="#264098" />
-        </TouchableOpacity>
-      </View>
+       <View style={styles.header}>
+      <Text style={styles.logo}>ServMe</Text>
+      <TouchableOpacity onPress={() => navigation.navigate('Account')}>
+        <Ionicons name="person-circle-outline" size={32} color="#264098" />
+      </TouchableOpacity>
+    </View>
 
       {/* Search Bar */}
       <View style={styles.searchContainer}>
@@ -41,23 +49,25 @@ export default function HomeScreen() {
           <Text style={styles.cardTitle}>🍔 Fast & Hot</Text>
           <Text style={styles.cardText}>Burgers delivered under 30 minutes.</Text>
         </View>
+
+        <TouchableOpacity
+        style={{
+        backgroundColor: '#264098',
+        padding: 14,
+        borderRadius: 12,
+        alignItems: 'center',
+        marginBottom: 30,
+        }}
+        onPress={() => navigation.navigate('SignUp')} >
+
+      <Text style={{ color: '#FFF', fontWeight: 'bold', fontSize: 16 }}>Test Signup</Text>
+      </TouchableOpacity>
+
+
+
       </ScrollView>
 
-      {/* Bottom Navigation */}
-      <View style={styles.bottomNav}>
-        <TouchableOpacity style={styles.navItem}>
-          <Ionicons name="home" size={24} color="#264098" />
-          <Text style={styles.navText}>Home</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
-          <MaterialIcons name="restaurant-menu" size={24} color="#888" />
-          <Text style={styles.navText}>Restaurants</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
-          <FontAwesome name="support" size={22} color="#888" />
-          <Text style={styles.navText}>Support</Text>
-        </TouchableOpacity>
-      </View>
+ 
     </SafeAreaView>
   );
 }
@@ -116,21 +126,6 @@ const styles = StyleSheet.create({
   cardText: {
     fontSize: 14,
     color: '#666',
-  },
-  bottomNav: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingVertical: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#DDD',
-    backgroundColor: '#FFF',
-  },
-  navItem: {
-    alignItems: 'center',
-  },
-  navText: {
-    fontSize: 12,
-    marginTop: 4,
-    color: '#666',
-  },
+  } 
+
 });
