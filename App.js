@@ -12,7 +12,11 @@ import SupportScreen from './screens/SupportScreen';
 import AccountScreen from './screens/AccountScreen';
 import SignUpScreen from './screens/SignUpScreen';
 import LoginScreen from './screens/LoginScreen';
-
+import AdminScreen from './screens/AdminScreen';
+import PizzaScreen from './screens/PizzaScreen';
+import FastFoodScreen from './screens/FastFoodScreen';
+import SushiScreen from './screens/SushiScreen';
+import ReservationScreen from './screens/ReservationScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -58,32 +62,20 @@ function Tabs() {
 
 function App() {
   return (
-    <>
+    <NavigationContainer>
       <StatusBar barStyle="dark-content" />
-      <NavigationContainer>
-        <Stack.Navigator>
-         
-          <Stack.Screen
-            name="MainTabs"
-            component={Tabs}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="Account"
-            component={AccountScreen}
-            options={{ headerShown: false }}
-          />
-
-
-<Stack.Screen name="SignUp" component={SignUpScreen} options={{ headerShown: false }} />
-          <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
-
-
-
-        </Stack.Navigator>
-      </NavigationContainer>
-      
-    </>
+      <Stack.Navigator>
+        <Stack.Screen name="MainTabs" component={Tabs} options={{ headerShown: false }} />
+        <Stack.Screen name="Account" component={AccountScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="SignUp" component={SignUpScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="Admin" component={AdminScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="Pizza" component={PizzaScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="FastFood" component={FastFoodScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="Sushi" component={SushiScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="Reservation" component={ReservationScreen} options={{ headerShown: false }} />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }
 

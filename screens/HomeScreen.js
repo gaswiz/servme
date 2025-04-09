@@ -1,7 +1,5 @@
 import React from 'react';
 import { useNavigation } from '@react-navigation/native';
-
-
 import {
   View,
   Text,
@@ -11,23 +9,20 @@ import {
   TouchableOpacity,
   ScrollView,
 } from 'react-native';
-import { Ionicons, MaterialIcons, FontAwesome } from '@expo/vector-icons';
-
-
+import { Ionicons } from '@expo/vector-icons';
 
 export default function HomeScreen() {
   const navigation = useNavigation();
-  
 
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
-       <View style={styles.header}>
-      <Text style={styles.logo}>ServMe</Text>
-      <TouchableOpacity onPress={() => navigation.navigate('Account')}>
-        <Ionicons name="person-circle-outline" size={32} color="#264098" />
-      </TouchableOpacity>
-    </View>
+      <View style={styles.header}>
+        <Text style={styles.logo}>ServMe</Text>
+        <TouchableOpacity onPress={() => navigation.navigate('Account')}>
+          <Ionicons name="person-circle-outline" size={32} color="#264098" />
+        </TouchableOpacity>
+      </View>
 
       {/* Search Bar */}
       <View style={styles.searchContainer}>
@@ -37,37 +32,36 @@ export default function HomeScreen() {
 
       {/* Main Content */}
       <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.card}>
+        <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('Pizza')}>
           <Text style={styles.cardTitle}>🍕 Pizza Specials</Text>
           <Text style={styles.cardText}>Check out this week's pizza deals.</Text>
-        </View>
-        <View style={styles.card}>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('Sushi')}>
           <Text style={styles.cardTitle}>🍣 Sushi Spots</Text>
           <Text style={styles.cardText}>Explore top-rated sushi restaurants.</Text>
-        </View>
-        <View style={styles.card}>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('FastFood')}>
           <Text style={styles.cardTitle}>🍔 Fast & Hot</Text>
           <Text style={styles.cardText}>Burgers delivered under 30 minutes.</Text>
-        </View>
+        </TouchableOpacity>
+
 
         <TouchableOpacity
-        style={{
-        backgroundColor: '#264098',
-        padding: 14,
-        borderRadius: 12,
-        alignItems: 'center',
-        marginBottom: 30,
-        }}
-        onPress={() => navigation.navigate('SignUp')} >
+          style={styles.testBtn}
+          onPress={() => navigation.navigate('SignUp')}
+        >
+          <Text style={styles.testBtnText}>Test Signup</Text>
+        </TouchableOpacity>
 
-      <Text style={{ color: '#FFF', fontWeight: 'bold', fontSize: 16 }}>Test Signup</Text>
-      </TouchableOpacity>
-
-
-
+        <TouchableOpacity
+          style={styles.testBtn}
+          onPress={() => navigation.navigate('Admin')}
+        >
+          <Text style={styles.testBtnText}>Test Admin</Text>
+        </TouchableOpacity>
       </ScrollView>
-
- 
     </SafeAreaView>
   );
 }
@@ -107,6 +101,7 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 20,
+    paddingBottom: 60,
   },
   card: {
     backgroundColor: '#FFF',
@@ -126,6 +121,17 @@ const styles = StyleSheet.create({
   cardText: {
     fontSize: 14,
     color: '#666',
-  } 
-
+  },
+  testBtn: {
+    backgroundColor: '#264098',
+    padding: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  testBtnText: {
+    color: '#FFF',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
 });
