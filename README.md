@@ -1,150 +1,150 @@
-# ServMe – Mobile Restaurant Reservation App
+# ServMe - Restaurant Reservation System
 
-**ServMe** is a mobile restaurant reservation application built using **React Native** with **Expo**. It features a simple user interface inspired by platforms like e-food, allowing users to explore restaurants by category (Pizza, Sushi, Fast Food), make reservations, and manage user and admin operations.
+## Overview
+ServMe is a restaurant reservation system built with Node.js, Express, MariaDB, and JWT-based authentication. The application allows users to create and manage reservations for restaurants and perform login with hashed passwords.
 
----
+## Setup
 
-## 📁 Project Structure
+### Prerequisites
+1. Node.js (v16.x or above)
+2. MariaDB (v10.x or above)
 
-```
-servme/
-├── assets/
-│   └── images/
-│       ├── Pizza/
-│       ├── Sushi/
-│       └── Fast/
-├── screens/
-│   ├── HomeScreen.js
-│   ├── AccountScreen.js
-│   ├── AdminScreen.js
-│   ├── RestaurantsScreen.js
-│   ├── PizzaScreen.js
-│   ├── SushiScreen.js
-│   ├── FastFoodScreen.js
-│   ├── ReservationScreen.js
-│   ├── SignUpScreen.js
-│   └── LoginScreen.js
-├── App.js
-├── package.json
-└── ...
-```
+### Installation
 
----
+1. Clone the repository:
 
-## 🚀 Getting Started
+   ```bash
+   git clone <repository_url>
+   cd servme
+   ```
 
-Follow these steps to clone and run the project on your machine.
+2. Install dependencies:
 
-### 1. Clone the Repository
+   ```bash
+   npm install
+   ```
 
-```bash
-git clone https://github.com/gaswiz/servme.git
-cd servme
-```
+3. Create a `.env` file in the root directory with the following environment variables:
 
----
+   ```env
+   DB_HOST=localhost
+   DB_USER=root
+   DB_PASSWORD=your_db_password
+   DB_NAME=servme
+   JWT_SECRET=your_jwt_secret_key
+   ```
 
-### 2. Install Dependencies
+4. Create and configure your MariaDB database:
 
-Make sure you have **Node.js (>=16.x)** installed.
+   ```sql
+   CREATE DATABASE servme;
+   ```
 
-If you don’t have Expo CLI installed globally:
+5. Create necessary tables (`users`, `restaurants`, `reservations`), and seed your database with test data.
 
-```bash
-npm install -g expo-cli
-```
+   Example SQL for creating the `users` table:
+   ```sql
+   CREATE TABLE users (
+     id INT AUTO_INCREMENT PRIMARY KEY,
+     name VARCHAR(100),
+     surname VARCHAR(100),
+     email VARCHAR(100) UNIQUE,
+     phone VARCHAR(20),
+     password VARCHAR(255),
+     role ENUM('user', 'admin') DEFAULT 'user',
+     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+   );
+   ```
 
-Then, install the project dependencies:
+### Running the Application
 
-```bash
-npm install
-```
+1. Start your MariaDB service if it's not running:
 
----
+   ```bash
+   sudo service mysql start
+   ```
 
-### 3. Start the Project
+2. Start the server:
 
-Start the Expo development server:
+   ```bash
+   npm run dev
+   ```
 
-```bash
-npx expo start
-```
+   This will start the server at `http://localhost:3001` (or another port if specified).
 
-Expo will generate a QR code you can scan with the **Expo Go** app on your phone (iOS/Android) to preview the app.
+### Testing the Authentication
 
----
+You can use Postman or any API testing tool to test the login functionality:
 
-## 📱 Run on Device
+- **POST** `http://localhost:3001/api/auth/login`
+- **Request Body** (JSON):
+   ```json
+   {
+     "email": "admin@gmail.com",
+     "password": "admin"
+   }
+   ```
 
-1. Download the **Expo Go** app from the App Store or Google Play.
-2. Open the Expo Go app and scan the QR code from the terminal or browser.
-3. The app will load on your phone.
+### API Endpoints
 
----
+- **POST** `/api/auth/login` - User login (returns JWT token on successful login)
+- **GET** `/api/restaurants` - List all restaurants
+- **POST** `/api/restaurants` - Create a new restaurant (admin only)
+- **GET** `/api/reservations` - List all reservations (admin only)
+- **POST** `/api/reservations` - Create a new reservation (user)
+  
+### Middleware
 
-## ⚙️ Requirements
+- **protect**: Protects routes and checks if the user is authenticated by verifying the JWT token in the request header.
+- **adminOnly**: Ensures only admins can access certain routes like creating a restaurant or viewing all reservations.
 
-- Node.js (16.x or 18.x)
-- npm
-- Expo CLI (`npm install -g expo-cli`)
-- Git (for version control)
-- Expo Go app (on your mobile device)
+## Database Schema
 
----
+### Users Table
 
-## 🧪 Functionality Overview
+| Field        | Type            | Description                 |
+|--------------|-----------------|-----------------------------|
+| id           | INT             | Auto-incremented user ID    |
+| name         | VARCHAR(100)     | User's first name           |
+| surname      | VARCHAR(100)     | User's last name            |
+| email        | VARCHAR(100)     | Unique email for login      |
+| phone        | VARCHAR(20)      | User's phone number         |
+| password     | VARCHAR(255)     | Hashed password             |
+| role         | ENUM('user', 'admin') | User role (default: 'user') |
+| created_at   | TIMESTAMP        | Date and time of account creation |
 
-- **Home Screen**: Browse pizza, sushi, and fast food categories.
-- **Reservation Screen**: Reserve a spot (each restaurant has 10 slots max).
-- **Account Screen**: User details and reservations.
-- **Admin Screen**: Admin can view all users and reservations.
-- **Login/Signup**: Placeholder screens for user authentication.
+### Restaurants Table
 
----
+| Field        | Type            | Description                 |
+|--------------|-----------------|-----------------------------|
+| id           | INT             | Auto-incremented restaurant ID |
+| name         | VARCHAR(100)     | Restaurant name             |
+| description  | TEXT            | Restaurant description      |
+| image        | VARCHAR(255)     | URL to restaurant's image   |
 
-## 📂 Assets
+### Reservations Table
 
-Place all restaurant images inside:
+| Field        | Type            | Description                 |
+|--------------|-----------------|-----------------------------|
+| id           | INT             | Auto-incremented reservation ID |
+| user_id      | INT             | User who made the reservation |
+| restaurant_id| INT             | Restaurant being reserved   |
+| date         | DATE            | Date of reservation         |
+| time         | TIME            | Time of reservation         |
 
-```
-/assets/images/Pizza/
-                    pizza1.jpg ... pizza5.jpg
+## Notes
 
-/assets/images/Sushi/
-                    sushi1.jpg ... sushi5.jpg
+- Passwords are hashed using `bcryptjs` for security.
+- JWT tokens are used for authentication, with a default expiration of 30 days.
+- The database connection is made via the MariaDB pool, and environment variables are loaded using `dotenv`.
 
-/assets/images/Fast/
-                    fast1.jpg ... fast5.jpg
-```
+## Troubleshooting
 
-> ⚠️ **Images are required for the app to render restaurant screens correctly.**
+- If you encounter the "User not found" issue, check the database connection and make sure the user exists.
+- Ensure you are sending the correct headers for authorization when making requests that require login.
 
----
+## License
 
-## 📌 Notes
+This project is licensed under the MIT License.
 
-- Project uses **local state only** (no backend/database yet).
-- Reservation logic limits each restaurant to 10 active reservations.
-- Screens are wired using **React Navigation**.
-- Images are stored locally for consistency and offline support.
-
----
-
-## 🛠️ Development Notes
-
-- Designed and tested with **Expo Go on iPhone**.
-- Ensure any new screen is registered in **App.js** and uses `useNavigation()` where needed.
-- Use `SafeAreaView` and consistent padding for mobile UI alignment.
-
----
-
-## 🧑‍💻 Contributors
-
-- Konstantinos Panagiotaropoulos – Developer & Project Owner
-
----
-
-## 📄 License
-
-This project is for educational and demo purposes. Commercial use is not allowed without permission.
 ```
