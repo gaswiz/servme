@@ -1,150 +1,121 @@
-# ServMe - Restaurant Reservation System
+# ServMe 🍽️
 
-## Overview
-ServMe is a restaurant reservation system built with Node.js, Express, MariaDB, and JWT-based authentication. The application allows users to create and manage reservations for restaurants and perform login with hashed passwords.
+ServMe is a full-stack mobile application for restaurant reservations built using **React Native (Expo)** for the frontend and **Node.js + MariaDB** for the backend. It allows users to register, log in, browse restaurants by category (Pizza, Sushi, Fast Food), make reservations, and view their account details and booking history.
 
-## Setup
+---
 
-### Prerequisites
-1. Node.js (v16.x or above)
-2. MariaDB (v10.x or above)
+## 🔧 Features
 
-### Installation
+### ✅ Completed
+- Secure login/signup with JWT
+- Admin & User roles with role-based routing
+- Persistent login via AsyncStorage
+- Frontend screens:
+  - Home, Restaurants, Support
+  - Login, SignUp, Account, Admin
+  - Pizza, Sushi, Fast Food
+  - Reservation
+- Backend API:
+  - `/api/auth`, `/api/users`
+  - `/api/restaurants`, `/api/reservations`
+- Database: MariaDB with connection pooling
+- Token storage and redirection logic implemented
 
-1. Clone the repository:
+---
 
-   ```bash
-   git clone <repository_url>
-   cd servme
-   ```
+## 🔨 Setup Instructions
 
-2. Install dependencies:
+### 1. Clone the repo
 
-   ```bash
-   npm install
-   ```
+```bash
+git clone https://github.com/gaswiz/servme.git
+cd servme
+```
 
-3. Create a `.env` file in the root directory with the following environment variables:
+### 2. Backend setup
 
-   ```env
-   DB_HOST=localhost
-   DB_USER=root
-   DB_PASSWORD=your_db_password
-   DB_NAME=servme
-   JWT_SECRET=your_jwt_secret_key
-   ```
+```bash
+cd backend
+npm install
+cp .env.example .env
+# edit your .env file with your database credentials
+npm run dev
+```
 
-4. Create and configure your MariaDB database:
+### 3. Frontend setup
 
-   ```sql
-   CREATE DATABASE servme;
-   ```
+```bash
+cd ..
+npm install
+npx expo start
+```
 
-5. Create necessary tables (`users`, `restaurants`, `reservations`), and seed your database with test data.
+> ℹ️ If using a real device, replace `localhost` in `LoginScreen.js` with your IP address (e.g. `192.168.1.X`)
 
-   Example SQL for creating the `users` table:
-   ```sql
-   CREATE TABLE users (
-     id INT AUTO_INCREMENT PRIMARY KEY,
-     name VARCHAR(100),
-     surname VARCHAR(100),
-     email VARCHAR(100) UNIQUE,
-     phone VARCHAR(20),
-     password VARCHAR(255),
-     role ENUM('user', 'admin') DEFAULT 'user',
-     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-   );
-   ```
+---
 
-### Running the Application
+## 🧪 Testing Logins
 
-1. Start your MariaDB service if it's not running:
+| Email              | Password | Role   |
+|-------------------|----------|--------|
+| admin@gmail.com    | admin    | admin  |
+| user1@gmail.com    | user1    | user   |
+| user2@gmail.com    | user2    | user   |
 
-   ```bash
-   sudo service mysql start
-   ```
+> Passwords are hashed with bcrypt in the DB
 
-2. Start the server:
+---
 
-   ```bash
-   npm run dev
-   ```
+## 📌 Next Tasks
 
-   This will start the server at `http://localhost:3001` (or another port if specified).
+1. **Unified Sign-In**  
+   - Login page is first screen  
+   - Admins → `AdminScreen`, Users → `HomeScreen`
 
-### Testing the Authentication
+2. **Live User Info in AccountScreen**  
+   - Replace dummy user info with DB-driven content  
+   - Show data based on logged-in JWT user
 
-You can use Postman or any API testing tool to test the login functionality:
+3. **Reservation System**
+   - Users should see “no reservations” initially  
+   - Upon booking → DB entry → reflected in account  
+   - Link to reservation screen and logic
 
-- **POST** `http://localhost:3001/api/auth/login`
-- **Request Body** (JSON):
-   ```json
-   {
-     "email": "admin@gmail.com",
-     "password": "admin"
-   }
-   ```
+---
 
-### API Endpoints
+## 🧠 Technologies
 
-- **POST** `/api/auth/login` - User login (returns JWT token on successful login)
-- **GET** `/api/restaurants` - List all restaurants
-- **POST** `/api/restaurants` - Create a new restaurant (admin only)
-- **GET** `/api/reservations` - List all reservations (admin only)
-- **POST** `/api/reservations` - Create a new reservation (user)
-  
-### Middleware
+- React Native (Expo)
+- React Navigation
+- AsyncStorage
+- Node.js / Express
+- MariaDB
+- JWT Authentication
+- bcrypt.js
 
-- **protect**: Protects routes and checks if the user is authenticated by verifying the JWT token in the request header.
-- **adminOnly**: Ensures only admins can access certain routes like creating a restaurant or viewing all reservations.
+---
 
-## Database Schema
-
-### Users Table
-
-| Field        | Type            | Description                 |
-|--------------|-----------------|-----------------------------|
-| id           | INT             | Auto-incremented user ID    |
-| name         | VARCHAR(100)     | User's first name           |
-| surname      | VARCHAR(100)     | User's last name            |
-| email        | VARCHAR(100)     | Unique email for login      |
-| phone        | VARCHAR(20)      | User's phone number         |
-| password     | VARCHAR(255)     | Hashed password             |
-| role         | ENUM('user', 'admin') | User role (default: 'user') |
-| created_at   | TIMESTAMP        | Date and time of account creation |
-
-### Restaurants Table
-
-| Field        | Type            | Description                 |
-|--------------|-----------------|-----------------------------|
-| id           | INT             | Auto-incremented restaurant ID |
-| name         | VARCHAR(100)     | Restaurant name             |
-| description  | TEXT            | Restaurant description      |
-| image        | VARCHAR(255)     | URL to restaurant's image   |
-
-### Reservations Table
-
-| Field        | Type            | Description                 |
-|--------------|-----------------|-----------------------------|
-| id           | INT             | Auto-incremented reservation ID |
-| user_id      | INT             | User who made the reservation |
-| restaurant_id| INT             | Restaurant being reserved   |
-| date         | DATE            | Date of reservation         |
-| time         | TIME            | Time of reservation         |
-
-## Notes
-
-- Passwords are hashed using `bcryptjs` for security.
-- JWT tokens are used for authentication, with a default expiration of 30 days.
-- The database connection is made via the MariaDB pool, and environment variables are loaded using `dotenv`.
-
-## Troubleshooting
-
-- If you encounter the "User not found" issue, check the database connection and make sure the user exists.
-- Ensure you are sending the correct headers for authorization when making requests that require login.
-
-## License
-
-This project is licensed under the MIT License.
+## 📁 Project Structure
 
 ```
+├── backend/
+│   ├── config/
+│   ├── controllers/
+│   ├── middleware/
+│   ├── models/
+│   ├── routes/
+│   └── server.js
+├── screens/
+│   └── *.js (Home, Login, etc.)
+├── App.js
+└── README.md
+```
+
+---
+
+## 👨‍💻 Author
+
+**Konstantinos Panagiotaropoulos**  
+Final Year BSc Computer Science | CN6035  Project
+```
+
