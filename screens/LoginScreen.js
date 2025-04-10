@@ -1,4 +1,5 @@
-import React from 'react';
+// screens/LoginScreen.js
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -7,27 +8,74 @@ import {
   TouchableOpacity,
   SafeAreaView,
   ScrollView,
+  Alert,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function LoginScreen() {
   const navigation = useNavigation();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert('Error', 'Please enter both email and password');
+      return;
+    }
+
+    try {
+      const response = await fetch('http://localhost:3001/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        await AsyncStorage.setItem('token', data.token);
+        await AsyncStorage.setItem('userRole', data.role);
+        await AsyncStorage.setItem('userId', data.id.toString());
+
+        if (data.role === 'admin') {
+          navigation.navigate('Admin');
+        } else if (data.role === 'user') {
+          navigation.navigate('MainTabs');
+        } else {
+          Alert.alert('Unauthorized', 'Unknown user role');
+        }
+      } else {
+        Alert.alert('Login Failed', data.message);
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      Alert.alert('Error', 'Something went wrong.');
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Text style={styles.title}>ServMe</Text>
 
-        {['Email', 'Password'].map((placeholder, index) => (
-          <TextInput
-            key={index}
-            placeholder={placeholder}
-            style={styles.input}
-            secureTextEntry={placeholder === 'Password'}
-          />
-        ))}
+        <TextInput
+          placeholder="Email"
+          value={email}
+          onChangeText={setEmail}
+          style={styles.input}
+          autoCapitalize="none"
+        />
 
-        <TouchableOpacity style={styles.button}>
+        <TextInput
+          placeholder="Password"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+          style={styles.input}
+        />
+
+        <TouchableOpacity style={styles.button} onPress={handleLogin}>
           <Text style={styles.buttonText}>Login</Text>
         </TouchableOpacity>
 

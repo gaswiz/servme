@@ -1,18 +1,19 @@
-import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  SafeAreaView,
-  TouchableOpacity,
-  Image,
-  ScrollView,
-} from 'react-native';
+import React, { useEffect } from 'react';
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Image, ScrollView } from 'react-native';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 
 export default function AccountScreen() {
   const navigation = useNavigation();
+
+  useEffect(() => {
+    // Check if the user is logged in by verifying the presence of a token
+    const token = localStorage.getItem('token');
+    if (!token) {
+      // Redirect to Login screen if not logged in
+      navigation.navigate('Login');
+    }
+  }, []);
 
   return (
     <SafeAreaView style={styles.container}>

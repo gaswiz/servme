@@ -1,11 +1,14 @@
+// App.js
 import { registerRootComponent } from 'expo';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons, MaterialIcons, FontAwesome } from '@expo/vector-icons';
-import { StatusBar } from 'react-native';
+import { StatusBar, ActivityIndicator, View } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
+// Screens
 import HomeScreen from './screens/HomeScreen';
 import RestaurantsScreen from './screens/RestaurantsScreen';
 import SupportScreen from './screens/SupportScreen';
@@ -33,30 +36,72 @@ function Tabs() {
         name="Home"
         component={HomeScreen}
         options={{
-          tabBarIcon: ({ color }) => (
-            <Ionicons name="home" size={24} color={color} />
-          ),
+          tabBarIcon: ({ color }) => <Ionicons name="home" size={24} color={color} />,
         }}
       />
       <Tab.Screen
         name="Restaurants"
         component={RestaurantsScreen}
         options={{
-          tabBarIcon: ({ color }) => (
-            <MaterialIcons name="restaurant-menu" size={24} color={color} />
-          ),
+          tabBarIcon: ({ color }) => <MaterialIcons name="restaurant-menu" size={24} color={color} />,
         }}
       />
       <Tab.Screen
         name="Support"
         component={SupportScreen}
         options={{
-          tabBarIcon: ({ color }) => (
-            <FontAwesome name="support" size={22} color={color} />
-          ),
+          tabBarIcon: ({ color }) => <FontAwesome name="support" size={22} color={color} />,
         }}
       />
     </Tab.Navigator>
+  );
+}
+
+function AppNavigator() {
+  const [initialRoute, setInitialRoute] = useState(null);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const token = await AsyncStorage.getItem('token');
+        const role = await AsyncStorage.getItem('userRole');
+
+        if (token && role === 'admin') {
+          setInitialRoute('Admin');
+        } else if (token && role === 'user') {
+          setInitialRoute('MainTabs');
+        } else {
+          setInitialRoute('Login');
+        }
+      } catch (error) {
+        console.error('Auth check error:', error);
+        setInitialRoute('Login');
+      }
+    };
+
+    checkAuth();
+  }, []);
+
+  if (!initialRoute) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color="#264098" />
+      </View>
+    );
+  }
+
+  return (
+    <Stack.Navigator initialRouteName={initialRoute}>
+      <Stack.Screen name="MainTabs" component={Tabs} options={{ headerShown: false }} />
+      <Stack.Screen name="Account" component={AccountScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="SignUp" component={SignUpScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="Admin" component={AdminScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="Pizza" component={PizzaScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="FastFood" component={FastFoodScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="Sushi" component={SushiScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="Reservation" component={ReservationScreen} options={{ headerShown: false }} />
+    </Stack.Navigator>
   );
 }
 
@@ -64,17 +109,7 @@ function App() {
   return (
     <NavigationContainer>
       <StatusBar barStyle="dark-content" />
-      <Stack.Navigator>
-        <Stack.Screen name="MainTabs" component={Tabs} options={{ headerShown: false }} />
-        <Stack.Screen name="Account" component={AccountScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="SignUp" component={SignUpScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="Admin" component={AdminScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="Pizza" component={PizzaScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="FastFood" component={FastFoodScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="Sushi" component={SushiScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="Reservation" component={ReservationScreen} options={{ headerShown: false }} />
-      </Stack.Navigator>
+      <AppNavigator />
     </NavigationContainer>
   );
 }
