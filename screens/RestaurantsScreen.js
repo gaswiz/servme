@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,46 +7,73 @@ import {
   Image,
   TouchableOpacity,
   SafeAreaView,
+  Animated,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+
+// Local images
+const restaurantImages = [
+  require('../assets/images/Restaurants/restaurant1.jpg'),
+  require('../assets/images/Restaurants/restaurant2.jpg'),
+  require('../assets/images/Restaurants/restaurant3.jpg'),
+  require('../assets/images/Restaurants/restaurant4.jpg'),
+  require('../assets/images/Restaurants/restaurant5.jpg'),
+];
 
 const categories = ['Pizza', 'Sushi', 'Fast Food'];
 
-const imageUrls = [
-  'https://images.unsplash.com/photo-1528605248644-14dd04022da1?auto=format&fit=crop&w=800&q=80',
-  'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=800&q=80',
-  'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=800&q=80',
-];
-
 const restaurants = {
   Pizza: [
-    { name: 'Pizza Palace', description: 'Wood-fired pizzas with fresh ingredients.' },
-    { name: 'Mamma Mia Pizzeria', description: 'Authentic Italian flavors in every slice.' },
-    { name: 'Cheesy Heaven', description: 'Extra cheese? Always. Always cheese.' },
+    { name: 'Pizza Palace', description: 'Wood-fired pizzas with fresh ingredients.', image: restaurantImages[0] },
+    { name: 'Mamma Mia', description: 'Authentic Napoli-style pizzas.', image: restaurantImages[1] },
+    { name: 'Slice It', description: 'Fast, hot, and cheesy slices.', image: restaurantImages[2] },
   ],
   Sushi: [
-    { name: 'Sushi Express', description: 'Quick, fresh, and delicious sushi rolls.' },
-    { name: 'Tokyo Bites', description: 'Traditional Japanese dining experience.' },
-    { name: 'Nori House', description: 'Seaweed dreams and soy sauce streams.' },
+    { name: 'Sakura Sushi', description: 'Fresh sushi crafted to perfection.', image: restaurantImages[3] },
+    { name: 'Tokyo Rolls', description: 'Classic Japanese sushi rolls.', image: restaurantImages[4] },
+    { name: 'Nori House', description: 'Tasty bites wrapped in nori.', image: restaurantImages[0] },
   ],
   'Fast Food': [
-    { name: 'Burger Blast', description: 'Juicy burgers and crispy fries.' },
-    { name: 'Snack Rush', description: 'Late-night cravings? We got you.' },
-    { name: 'Fry Station', description: 'Fast, greasy, glorious goodness.' },
+    { name: 'Burger Bomb', description: 'Explosive flavors in every burger.', image: restaurantImages[1] },
+    { name: 'Fries Hub', description: 'Where fries meet gourmet.', image: restaurantImages[2] },
+    { name: 'Snack Rush', description: 'Speedy and satisfying snacks.', image: restaurantImages[3] },
   ],
 };
 
 export default function RestaurantsScreen() {
+  const navigation = useNavigation();
   const [selectedCategory, setSelectedCategory] = useState('Pizza');
+  const scrollX = useRef(new Animated.Value(0)).current;
+  const scrollRef = useRef();
+
+  useEffect(() => {
+    let offset = 0;
+    const interval = setInterval(() => {
+      offset = (offset + 250) % (restaurantImages.length * 250);
+      scrollRef.current?.scrollTo({ x: offset, animated: true });
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <Text style={styles.heading}>Recommended for You</Text>
 
-        {/* Hero Carousel */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.carousel}>
-          {imageUrls.map((uri, index) => (
-            <Image key={index} source={{ uri }} style={styles.heroImage} />
+        {/* Animated Carousel */}
+        <ScrollView
+          horizontal
+          ref={scrollRef}
+          showsHorizontalScrollIndicator={false}
+          style={styles.carousel}
+          scrollEventThrottle={16}
+          onScroll={Animated.event(
+            [{ nativeEvent: { contentOffset: { x: scrollX } } }],
+            { useNativeDriver: false }
+          )}
+        >
+          {restaurantImages.map((img, idx) => (
+            <Image key={idx} source={img} style={styles.heroImage} />
           ))}
         </ScrollView>
 
@@ -77,8 +104,20 @@ export default function RestaurantsScreen() {
         <View style={styles.restaurantList}>
           {restaurants[selectedCategory].map((item, index) => (
             <View key={index} style={styles.card}>
+              <Image source={item.image} style={styles.cardImage} />
               <Text style={styles.cardTitle}>{item.name}</Text>
               <Text style={styles.cardText}>{item.description}</Text>
+              <TouchableOpacity
+                style={styles.reserveButton}
+                onPress={() =>
+                  navigation.navigate('Reservation', {
+                    name: item.name,
+                    image: item.image,
+                  })
+                }
+              >
+                <Text style={styles.reserveText}>Reserve</Text>
+              </TouchableOpacity>
             </View>
           ))}
         </View>
@@ -147,13 +186,30 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
     elevation: 3,
   },
+  cardImage: {
+    width: '100%',
+    height: 160,
+    borderRadius: 12,
+    marginBottom: 15,
+  },
   cardTitle: {
     fontSize: 18,
     fontWeight: '600',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   cardText: {
     fontSize: 14,
     color: '#666',
+    marginBottom: 10,
+  },
+  reserveButton: {
+    backgroundColor: '#264098',
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  reserveText: {
+    color: '#FFF',
+    fontWeight: 'bold',
   },
 });

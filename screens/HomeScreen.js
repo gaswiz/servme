@@ -1,5 +1,4 @@
-import React from 'react';
-import { useNavigation } from '@react-navigation/native';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -10,9 +9,37 @@ import {
   ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+
+const featuredItems = [
+  {
+    title: 'Pizza Specials',
+    description: "Check out this week's pizza deals.",
+    keywords: ['pizza'],
+    navigateTo: 'Pizza',
+  },
+  {
+    title: 'Sushi Spots',
+    description: 'Explore top-rated sushi restaurants.',
+    keywords: ['sushi'],
+    navigateTo: 'Sushi',
+  },
+  {
+    title: 'Fast & Hot',
+    description: 'Burgers delivered under 30 minutes.',
+    keywords: ['fast', 'burger'],
+    navigateTo: 'Fast',
+  },
+];
 
 export default function HomeScreen() {
   const navigation = useNavigation();
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filteredItems = featuredItems.filter(item =>
+    item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    item.keywords.some(kw => kw.includes(searchQuery.toLowerCase()))
+  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -27,39 +54,39 @@ export default function HomeScreen() {
       {/* Search Bar */}
       <View style={styles.searchContainer}>
         <Ionicons name="search" size={20} color="#888" style={styles.searchIcon} />
-        <TextInput placeholder="Search for restaurants..." style={styles.searchInput} />
+        <TextInput
+          placeholder="Search for restaurants..."
+          style={styles.searchInput}
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+        />
       </View>
 
       {/* Main Content */}
       <ScrollView contentContainerStyle={styles.content}>
-        <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('Pizza')}>
-          <Text style={styles.cardTitle}>🍕 Pizza Specials</Text>
-          <Text style={styles.cardText}>Check out this week's pizza deals.</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('Sushi')}>
-          <Text style={styles.cardTitle}>🍣 Sushi Spots</Text>
-          <Text style={styles.cardText}>Explore top-rated sushi restaurants.</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('FastFood')}>
-          <Text style={styles.cardTitle}>🍔 Fast & Hot</Text>
-          <Text style={styles.cardText}>Burgers delivered under 30 minutes.</Text>
-        </TouchableOpacity>
-
+        {filteredItems.map((item, index) => (
+          <TouchableOpacity
+            key={index}
+            style={styles.card}
+            onPress={() => navigation.navigate(item.navigateTo)}
+          >
+            <Text style={styles.cardTitle}>{item.title}</Text>
+            <Text style={styles.cardText}>{item.description}</Text>
+          </TouchableOpacity>
+        ))}
 
         <TouchableOpacity
-          style={styles.testBtn}
+          style={styles.signupButton}
           onPress={() => navigation.navigate('SignUp')}
         >
-          <Text style={styles.testBtnText}>Test Signup</Text>
+          <Text style={styles.signupText}>Test Signup</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.testBtn}
+          style={[styles.signupButton, { backgroundColor: '#888' }]}
           onPress={() => navigation.navigate('Admin')}
         >
-          <Text style={styles.testBtnText}>Test Admin</Text>
+          <Text style={styles.signupText}>Test Admin</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
@@ -101,7 +128,6 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 20,
-    paddingBottom: 60,
   },
   card: {
     backgroundColor: '#FFF',
@@ -122,14 +148,14 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
   },
-  testBtn: {
+  signupButton: {
     backgroundColor: '#264098',
     padding: 14,
     borderRadius: 12,
     alignItems: 'center',
     marginBottom: 20,
   },
-  testBtnText: {
+  signupText: {
     color: '#FFF',
     fontWeight: 'bold',
     fontSize: 16,
