@@ -1,19 +1,27 @@
-// reservationRoutes.js
+// backend/routes/reservationRoutes.js
 import express from 'express';
 import {
   createReservation,
-  getReservations,
-  getReservationById,
-  updateReservation,
-  deleteReservation,
+  getAllReservations,
+  checkAvailability,
+  checkCategoryAvailability // ✅ Add this
 } from '../controllers/reservationController.js';
+
+import { protect } from '../middleware/auth.js';
 
 const router = express.Router();
 
-router.post('/', createReservation);
-router.get('/', getReservations);
-router.get('/:id', getReservationById);
-router.put('/:id', updateReservation);
-router.delete('/:id', deleteReservation);
+// Create a new reservation (protected)
+router.post('/', protect, createReservation);
 
-export default router; // ✅ Fix this line
+// ✅ New route to check availability by restaurant name
+router.get('/availability/:restaurantName', checkAvailability);
+
+
+router.get('/check/category', checkCategoryAvailability); // NEW
+
+
+// Optional: get all reservations (for admin or debug)
+router.get('/', getAllReservations);
+
+export default router;

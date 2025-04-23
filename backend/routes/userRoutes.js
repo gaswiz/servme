@@ -1,13 +1,11 @@
-// routes/userRoutes.js
+// backend/routes/userRoutes.js
 import express from 'express';
+import { getUserById } from '../controllers/authController.js';
+import { protect } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// Sample route for testing
-router.get('/', (req, res) => {
-  res.send('User route working');
-});
+// Protected route to get user by ID
+router.get('/:id', protect, getUserById);
 
 export default router;
-
-

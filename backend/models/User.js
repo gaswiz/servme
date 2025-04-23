@@ -1,55 +1,39 @@
-const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
+import { DataTypes } from 'sequelize';
+import sequelize from '../config/db.js';
 
-const userSchema = new mongoose.Schema(
+const User = sequelize.define(
+  'User',
   {
     name: {
-      type: String,
-      required: true,
+      type: DataTypes.STRING,
+      allowNull: false,
     },
     surname: {
-      type: String,
-      required: true,
+      type: DataTypes.STRING,
+      allowNull: false,
     },
     phone: {
-      type: String,
-      required: true,
+      type: DataTypes.STRING,
+      allowNull: false,
     },
     email: {
-      type: String,
-      required: true,
+      type: DataTypes.STRING,
+      allowNull: false,
       unique: true,
     },
     password: {
-      type: String,
-      required: true,
+      type: DataTypes.STRING,
+      allowNull: false,
     },
     role: {
-      type: String,
-      enum: ['user', 'admin'],
-      default: 'user',
+      type: DataTypes.ENUM('user', 'admin'),
+      defaultValue: 'user',
     },
   },
   {
-    timestamps: true,
+    tableName: 'users',       // your actual MariaDB table name
+    timestamps: false,        // disable createdAt and updatedAt
   }
 );
 
-// Hash the password before saving
-userSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) {
-    return next();
-  }
-
-  const salt = await bcrypt.genSalt(10);
-  this.password = await bcrypt.hash(this.password, salt);
-  next();
-});
-
-// Method to compare passwords during login
-userSchema.methods.matchPassword = async function (enteredPassword) {
-  return await bcrypt.compare(enteredPassword, this.password);
-};
-
-const User = mongoose.model('User', userSchema);
-module.exports = User;
+export default User;

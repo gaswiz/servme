@@ -1,16 +1,19 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
-  ImageBackground,
+  Image,
   TouchableOpacity,
   SafeAreaView,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
 
-const fastImages = [
+const BASE_URL = 'https://5a8b-94-66-154-234.ngrok-free.app';
+
+const fastFoodImages = [
   require('../assets/images/Fast/fast1.jpg'),
   require('../assets/images/Fast/fast2.jpg'),
   require('../assets/images/Fast/fast3.jpg'),
@@ -18,42 +21,84 @@ const fastImages = [
   require('../assets/images/Fast/fast5.jpg'),
 ];
 
-const fastRestaurants = [
-  { name: 'Speedy Bites', description: 'Fast food with a gourmet twist.' },
-  { name: 'Grill Master', description: 'Grilled to perfection in no time.' },
-  { name: 'Express Diner', description: 'Classic American fast food vibes.' },
-  { name: 'Chick’n’Rush', description: 'Crispy chicken served lightning fast.' },
-  { name: 'WrapGo', description: 'Delicious wraps on the go.' },
+const restaurantNames = [
+  'Burger Blitz',
+  'Fry Shack',
+  'Taco Town',
+  'Grill N Go',
+  'Snack Express',
 ];
 
-export default function FastFoodScreen() {
+export default function FastScreen() {
   const navigation = useNavigation();
+  const [availabilityData, setAvailabilityData] = useState({});
 
-  const handleReserve = (restaurantName, image) => {
-    navigation.navigate('Reservation', { name: restaurantName, image });
-  };
+  useEffect(() => {
+    const fetchAvailability = async () => {
+      try {
+        const responses = await Promise.all(
+          restaurantNames.map(name =>
+            fetch(`${BASE_URL}/api/reservations/check?restaurant=${encodeURIComponent(name)}`)
+          )
+        );
+        const results = await Promise.all(responses.map(res => res.json()));
+
+        const availabilityMap = {};
+        results.forEach((result, i) => {
+          availabilityMap[restaurantNames[i]] = result.count;
+        });
+
+        setAvailabilityData(availabilityMap);
+      } catch (error) {
+        console.error('Availability fetch error:', error);
+      }
+    };
+
+    fetchAvailability();
+  }, []);
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <Text style={styles.heading}>🔥 Fast & Hot Restaurants</Text>
+      <View style={styles.topBar}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={28} color="#264098" />
+        </TouchableOpacity>
+      </View>
 
-        {fastRestaurants.map((item, index) => (
-          <View key={index} style={styles.cardWrapper}>
-            <ImageBackground source={fastImages[index]} style={styles.card} imageStyle={styles.cardImage}>
-              <View style={styles.overlay}>
-                <Text style={styles.cardTitle}>{item.name}</Text>
-                <Text style={styles.cardText}>{item.description}</Text>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <Text style={styles.heading}>Fast & Hot</Text>
+
+        {restaurantNames.map((name, index) => {
+          const count = availabilityData[name] ?? 0;
+          return (
+            <View key={index} style={styles.card}>
+              <Image source={fastFoodImages[index]} style={styles.cardImage} />
+              <View style={styles.cardTextContainer}>
+                <Text style={styles.cardTitle}>{name}</Text>
+                <Text style={styles.cardText}>Delicious fast food, served quick and hot!</Text>
+                <Text style={styles.availability}>
+                  {count > 0 ? `Available reservations: ${count}` : 'Fully booked'}
+                </Text>
+
                 <TouchableOpacity
-                  style={styles.button}
-                  onPress={() => handleReserve(item.name, fastImages[index])}
+                  style={[styles.button, count === 0 && styles.disabledButton]}
+                  onPress={() =>
+                    count > 0 &&
+                    navigation.navigate('Reservation', {
+                      name,
+                      image: fastFoodImages[index],
+                    })
+                  }
+                  disabled={count === 0}
                 >
-                  <Text style={styles.buttonText}>Reserve</Text>
+                  <Text style={styles.buttonText}>
+                    {count === 0 ? 'Unavailable' : 'Reserve'}
+                  </Text>
                 </TouchableOpacity>
               </View>
-            </ImageBackground>
-          </View>
-        ))}
+            </View>
+          );
+        })}
       </ScrollView>
     </SafeAreaView>
   );
@@ -64,53 +109,64 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FAFAFA',
   },
+  topBar: {
+    padding: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 40,
+    padding: 20,
   },
   heading: {
     fontSize: 22,
     fontWeight: 'bold',
-    marginBottom: 15,
+    marginBottom: 20,
     color: '#264098',
   },
-  cardWrapper: {
-    marginBottom: 20,
-    borderRadius: 16,
-    overflow: 'hidden',
-  },
   card: {
-    height: 180,
-    justifyContent: 'flex-end',
+    backgroundColor: '#FFF',
+    borderRadius: 16,
+    marginBottom: 20,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 5,
+    elevation: 3,
   },
   cardImage: {
-    resizeMode: 'cover',
+    width: '100%',
+    height: 160,
   },
-  overlay: {
-    backgroundColor: 'rgba(255,255,255,0.9)',
-    padding: 16,
+  cardTextContainer: {
+    padding: 15,
   },
   cardTitle: {
     fontSize: 18,
     fontWeight: '600',
-    marginBottom: 4,
+    marginBottom: 6,
   },
   cardText: {
     fontSize: 14,
-    color: '#555',
-    marginBottom: 10,
+    color: '#666',
+    marginBottom: 6,
+  },
+  availability: {
+    fontSize: 14,
+    color: '#264098',
+    fontWeight: '500',
+    marginBottom: 12,
   },
   button: {
     backgroundColor: '#264098',
-    paddingVertical: 8,
-    paddingHorizontal: 14,
+    paddingVertical: 10,
     borderRadius: 8,
-    alignSelf: 'flex-start',
+    alignItems: 'center',
   },
   buttonText: {
     color: '#FFF',
     fontWeight: 'bold',
-    fontSize: 14,
+  },
+  disabledButton: {
+    backgroundColor: '#999',
   },
 });

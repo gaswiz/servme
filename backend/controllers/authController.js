@@ -1,18 +1,14 @@
 // backend/controllers/authController.js
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
-import { pool } from '../config/db.js';
 import dotenv from 'dotenv';
-import { log } from '../utils/helpers.js';
+import User from '../models/User.js';
 
 dotenv.config();
 
 const generateToken = (user) => {
   return jwt.sign(
-    {
-      id: user.id,
-      role: user.role,
-    },
+    { id: user.id, role: user.role },
     process.env.JWT_SECRET,
     { expiresIn: '30d' }
   );
@@ -20,34 +16,81 @@ const generateToken = (user) => {
 
 export const loginUser = async (req, res) => {
   const { email, password } = req.body;
-  log("Login payload", req.body);
 
   try {
-    const rows = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
+    const user = await User.findOne({ where: { email } });
 
-    if (!rows || rows.length === 0) {
-      log("User lookup", "No user found.");
-      return res.status(404).json({ message: 'User not found' });
-    }
+    if (!user) return res.status(404).json({ message: 'User not found' });
 
-    const user = rows[0];
-    log("User found", user);
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) return res.status(401).json({ message: 'Invalid credentials' });
 
-    const passwordsMatch = bcrypt.compareSync(password, user.password);
+    const token = generateToken(user);
 
-    if (passwordsMatch) {
-      const token = generateToken(user);
-      return res.json({
-        id: user.id,
-        email: user.email,
-        role: user.role,
-        token,
-      });
-    } else {
-      return res.status(401).json({ message: 'Invalid credentials' });
-    }
+    return res.json({
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      token,
+    });
   } catch (error) {
-    console.error("Error during login:", error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    console.error('Login error:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 };
+
+export const getUserById = async (req, res) => {
+  try {
+    const user = await User.findByPk(req.params.id, {
+      attributes: ['id', 'name', 'surname', 'email', 'phone', 'role'],
+    });
+
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    res.json(user);
+  } catch (error) {
+    console.error('Get user error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// ✅ ADD THIS inside backend/controllers/authController.js
+
+export const registerUser = async (req, res) => {
+  const { name, surname, email, phone, password } = req.body;
+
+  if (!name || !surname || !email || !phone || !password) {
+    return res.status(400).json({ message: 'All fields are required' });
+  }
+
+  try {
+    const existing = await User.findOne({ where: { email } });
+    if (existing) {
+      return res.status(409).json({ message: 'Email already registered' });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const user = await User.create({
+      name,
+      surname,
+      email,
+      phone,
+      password: hashedPassword,
+      role: 'user',
+    });
+
+    const token = generateToken(user);
+
+    res.status(201).json({
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      token,
+    });
+  } catch (error) {
+    console.error('Register error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+

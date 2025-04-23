@@ -1,101 +1,103 @@
-// screens/LoginScreen.js
 import React, { useState } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   TextInput,
+  StyleSheet,
   TouchableOpacity,
   SafeAreaView,
-  ScrollView,
   Alert,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+const BASE_URL = 'https://5a8b-94-66-154-234.ngrok-free.app';
+
 export default function LoginScreen() {
   const navigation = useNavigation();
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
   const handleLogin = async () => {
     if (!email || !password) {
-      Alert.alert('Error', 'Please enter both email and password');
+      Alert.alert('Missing Fields', 'Please enter both email and password.');
       return;
     }
 
     try {
-      const response = await fetch('http://localhost:3001/api/auth/login', {
+      const res = await fetch(`${BASE_URL}/api/auth/login`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({ email, password }),
       });
 
-      const data = await response.json();
+      const data = await res.json();
 
-      if (response.ok) {
-        await AsyncStorage.setItem('token', data.token);
-        await AsyncStorage.setItem('userRole', data.role);
-        await AsyncStorage.setItem('userId', data.id.toString());
-
-        if (data.role === 'admin') {
-          navigation.navigate('Admin');
-        } else if (data.role === 'user') {
-          navigation.navigate('MainTabs');
-        } else {
-          Alert.alert('Unauthorized', 'Unknown user role');
-        }
-      } else {
-        Alert.alert('Login Failed', data.message);
+      if (!res.ok) {
+        Alert.alert('Login Failed', data.message || 'Invalid credentials');
+        return;
       }
-    } catch (error) {
-      console.error('Login error:', error);
-      Alert.alert('Error', 'Something went wrong.');
+
+      await AsyncStorage.setItem('token', data.token);
+      await AsyncStorage.setItem('userId', String(data.id));
+      await AsyncStorage.setItem('userRole', data.role);
+
+      navigation.navigate('Home');
+    } catch (err) {
+      console.error('Login error:', err);
+      Alert.alert('Error', 'Server error. Please try again later.');
     }
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.title}>ServMe</Text>
+      <Text style={styles.title}>Welcome Back 👋</Text>
 
-        <TextInput
-          placeholder="Email"
-          value={email}
-          onChangeText={setEmail}
-          style={styles.input}
-          autoCapitalize="none"
-        />
+      <TextInput
+        placeholder="Email"
+        style={styles.input}
+        keyboardType="email-address"
+        value={email}
+        onChangeText={setEmail}
+      />
 
-        <TextInput
-          placeholder="Password"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-          style={styles.input}
-        />
+      <TextInput
+        placeholder="Password"
+        style={styles.input}
+        secureTextEntry
+        value={password}
+        onChangeText={setPassword}
+      />
 
-        <TouchableOpacity style={styles.button} onPress={handleLogin}>
-          <Text style={styles.buttonText}>Login</Text>
-        </TouchableOpacity>
+      <TouchableOpacity style={styles.button} onPress={handleLogin}>
+        <Text style={styles.buttonText}>Login</Text>
+      </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
-          <Text style={styles.linkText}>Don't have an account? Sign up here</Text>
-        </TouchableOpacity>
-      </ScrollView>
+      <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
+        <Text style={styles.linkText}>
+          Don't have an account? Click here to sign up
+        </Text>
+      </TouchableOpacity>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FAFAFA' },
-  scrollContent: { padding: 20, paddingTop: 60 },
+  container: {
+    flex: 1,
+    backgroundColor: '#FAFAFA',
+    padding: 20,
+    justifyContent: 'center',
+  },
   title: {
     fontSize: 26,
     fontWeight: 'bold',
     color: '#264098',
-    textAlign: 'center',
     marginBottom: 30,
+    textAlign: 'center',
   },
   input: {
     backgroundColor: '#EFEFEF',

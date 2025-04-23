@@ -61,25 +61,23 @@ function AppNavigator() {
   const [initialRoute, setInitialRoute] = useState(null);
 
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const token = await AsyncStorage.getItem('token');
-        const role = await AsyncStorage.getItem('userRole');
+    const initialize = async () => {
+      // FOR TESTING ONLY — remove or comment out after development
+      await AsyncStorage.clear();
 
-        if (token && role === 'admin') {
-          setInitialRoute('Admin');
-        } else if (token && role === 'user') {
-          setInitialRoute('MainTabs');
-        } else {
-          setInitialRoute('Login');
-        }
-      } catch (error) {
-        console.error('Auth check error:', error);
+      const token = await AsyncStorage.getItem('token');
+      const role = await AsyncStorage.getItem('userRole');
+
+      if (token && role === 'admin') {
+        setInitialRoute('Admin');
+      } else if (token && role === 'user') {
+        setInitialRoute('MainTabs');
+      } else {
         setInitialRoute('Login');
       }
     };
 
-    checkAuth();
+    initialize();
   }, []);
 
   if (!initialRoute) {

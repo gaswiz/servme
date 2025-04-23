@@ -1,19 +1,78 @@
-import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Image, ScrollView } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  SafeAreaView,
+  TouchableOpacity,
+  Image,
+  ScrollView,
+  Alert,
+} from 'react-native';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function AccountScreen() {
   const navigation = useNavigation();
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
-    // Check if the user is logged in by verifying the presence of a token
-    const token = localStorage.getItem('token');
-    if (!token) {
-      // Redirect to Login screen if not logged in
-      navigation.navigate('Login');
-    }
+    const fetchUserInfo = async () => {
+      try {
+        const token = await AsyncStorage.getItem('token');
+        const userId = await AsyncStorage.getItem('userId');
+
+        if (!token || !userId) {
+          navigation.navigate('Login');
+          return;
+        }
+
+        const res = await fetch(`http://localhost:3001/api/users/${userId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const text = await res.text();
+        try {
+          const data = JSON.parse(text);
+          if (res.ok) {
+            setUser(data);
+          } else {
+            console.error('Fetch failed:', data);
+            Alert.alert('Error', data.message || 'Failed to fetch user data');
+          }
+        } catch (err) {
+          console.error('Invalid response from server:', text);
+          Alert.alert('Error', 'Invalid response from server');
+        }
+      } catch (error) {
+        console.error('Account fetch error:', error);
+        Alert.alert('Error', 'Something went wrong while fetching user info.');
+      }
+    };
+
+    fetchUserInfo();
   }, []);
+
+  const handleLogout = async () => {
+    await AsyncStorage.removeItem('token');
+    await AsyncStorage.removeItem('userRole');
+    await AsyncStorage.removeItem('userId');
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'Login' }],
+    });
+  };
+
+  if (!user) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Text style={styles.loadingText}>Loading user data...</Text>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -21,6 +80,10 @@ export default function AccountScreen() {
       <View style={styles.topBar}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={28} color="#264098" />
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+          <Text style={styles.logoutText}>Logout</Text>
         </TouchableOpacity>
       </View>
 
@@ -33,16 +96,16 @@ export default function AccountScreen() {
             }}
             style={styles.avatar}
           />
-          <Text style={styles.welcomeText}>Welcome, user</Text>
+          <Text style={styles.welcomeText}>Welcome, {user.name}</Text>
         </View>
 
         {/* User Info */}
         <View style={styles.infoSection}>
           {[
-            { label: 'Name', value: 'John' },
-            { label: 'Surname', value: 'Doe' },
-            { label: 'Email', value: 'john.doe@example.com' },
-            { label: 'Phone', value: '+30 6912345678' },
+            { label: 'Name', value: user.name },
+            { label: 'Surname', value: user.surname },
+            { label: 'Email', value: user.email },
+            { label: 'Phone', value: user.phone },
           ].map((item, index) => (
             <View key={index} style={styles.infoRow}>
               <View>
@@ -56,17 +119,9 @@ export default function AccountScreen() {
           ))}
         </View>
 
-        {/* Reservation History */}
+        {/* Reservation Placeholder */}
         <Text style={styles.sectionHeading}>Your Reservations</Text>
-        {[1, 2, 3].map((_, index) => (
-          <View key={index} style={styles.reservationCard}>
-            <Text style={styles.cardTitle}>Reservation #{index + 1}</Text>
-            <Text style={styles.cardText}>Date: 2025-04-0{index + 1}</Text>
-            <Text style={styles.cardText}>Time: 19:00</Text>
-            <Text style={styles.cardText}>People: 2</Text>
-            <Text style={styles.cardText}>Place: Pizza Palace</Text>
-          </View>
-        ))}
+        <Text style={styles.cardText}>You have no reservations yet.</Text>
       </ScrollView>
     </SafeAreaView>
   );
@@ -77,10 +132,30 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FAFAFA',
   },
+  loadingText: {
+    textAlign: 'center',
+    marginTop: 100,
+    fontSize: 16,
+    color: '#999',
+  },
   topBar: {
     padding: 20,
     flexDirection: 'row',
-    justifyContent: 'flex-start',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  logoutButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderWidth: 1.5,
+    borderColor: '#264098',
+    borderRadius: 20,
+    backgroundColor: '#FFF',
+  },
+  logoutText: {
+    color: '#264098',
+    fontWeight: '600',
+    fontSize: 14,
   },
   scrollContent: {
     paddingBottom: 40,
@@ -130,21 +205,9 @@ const styles = StyleSheet.create({
     marginLeft: 30,
     marginBottom: 20,
   },
-  reservationCard: {
-    backgroundColor: '#FFF',
-    borderRadius: 12,
-    marginHorizontal: 30,
-    marginBottom: 20,
-    padding: 16,
-    elevation: 2,
-  },
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 8,
-  },
   cardText: {
     fontSize: 14,
     color: '#555',
+    marginHorizontal: 30,
   },
 });
