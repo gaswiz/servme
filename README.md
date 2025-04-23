@@ -7,19 +7,21 @@ ServMe is a full-stack mobile application for restaurant reservations built usin
 ## 🔧 Features
 
 ### ✅ Completed
-- Secure login/signup with JWT
+- Secure login/signup with JWT and live input validation
 - Admin & User roles with role-based routing
 - Persistent login via AsyncStorage
 - Frontend screens:
   - Home, Restaurants, Support
   - Login, SignUp, Account, Admin
   - Pizza, Sushi, Fast Food
-  - Reservation
+  - Reservation (with DB-based availability logic)
+- Live reservation availability per restaurant (max 10)
+- Availability logic synced across categories and restaurants
 - Backend API:
   - `/api/auth`, `/api/users`
   - `/api/restaurants`, `/api/reservations`
-- Database: MariaDB with connection pooling
-- Token storage and redirection logic implemented
+- Database: MariaDB with Sequelize ORM
+- Token storage, protected routes, and redirection logic implemented
 
 ---
 
@@ -50,7 +52,7 @@ npm install
 npx expo start
 ```
 
-> ℹ️ If using a real device, replace `localhost` in `LoginScreen.js` with your IP address (e.g. `192.168.1.X`)
+> ℹ️ If using a real device, replace `localhost` in `BASE_URL` inside all screens (e.g. `192.168.1.X`)
 
 ---
 
@@ -68,18 +70,24 @@ npx expo start
 
 ## 📌 Next Tasks
 
-1. **Unified Sign-In**  
-   - Login page is first screen  
-   - Admins → `AdminScreen`, Users → `HomeScreen`
+1. **Reservation Management Enhancements**  
+   - Add ability to cancel reservations  
+   - Admin view: show list of reservations per restaurant
 
-2. **Live User Info in AccountScreen**  
-   - Replace dummy user info with DB-driven content  
-   - Show data based on logged-in JWT user
+2. **Email Confirmations (optional)**  
+   - On reservation success, trigger confirmation email
 
-3. **Reservation System**
-   - Users should see “no reservations” initially  
-   - Upon booking → DB entry → reflected in account  
-   - Link to reservation screen and logic
+3. **Polish the UI**  
+   - Add better icons, restaurant ratings, dynamic hero sections  
+   - Improve the animations between screens
+
+4. **Bug Fixes / QA**  
+   - Final cross-platform testing (iOS/Android)
+   - Fix any overflow/scrolling issues
+
+5. **Submission Readiness**
+   - Create video demo
+   - Include ERD and system diagrams in the repo
 
 ---
 
@@ -90,6 +98,7 @@ npx expo start
 - AsyncStorage
 - Node.js / Express
 - MariaDB
+- Sequelize ORM
 - JWT Authentication
 - bcrypt.js
 
@@ -105,10 +114,12 @@ npx expo start
 │   ├── models/
 │   ├── routes/
 │   └── server.js
-├── screens/
-│   └── *.js (Home, Login, etc.)
-├── App.js
-└── README.md
+├── frontend/
+│   ├── components/
+│   │   └── Auth/, Restaurant/, Home/, Reservation/
+│   ├── assets/images/
+│   └── App.js
+├── README.md
 ```
 
 ---
@@ -116,6 +127,4 @@ npx expo start
 ## 👨‍💻 Author
 
 **Konstantinos Panagiotaropoulos**  
-Final Year BSc Computer Science | CN6035  Project
-```
-
+Final Year BSc Computer Science | CN6035 Project
