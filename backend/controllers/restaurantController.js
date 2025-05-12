@@ -1,5 +1,7 @@
 // controllers/restaurantController.js
 import db from '../config/db.js';
+import Restaurant from '../models/Restaurant.js'; // Sequelize model
+
 
 // CREATE restaurant
 export const createRestaurant = async (req, res) => {
@@ -17,15 +19,21 @@ export const createRestaurant = async (req, res) => {
   }
 };
 
-// GET all restaurants
+
+// GET all restaurants (with Sequelize)
 export const getAllRestaurants = async (req, res) => {
+  console.log('[restaurantController] getAllRestaurants called');
   try {
-    const [rows] = await db.execute('SELECT * FROM restaurants');
-    res.json(rows);
+    const restaurants = await Restaurant.findAll();
+    console.log('[restaurantController] Found restaurants:', restaurants);
+    res.json(restaurants);
   } catch (error) {
+    console.error('[restaurantController] Error fetching restaurants:', error);
     res.status(500).json({ message: 'Error fetching restaurants', error });
   }
 };
+
+
 
 // GET restaurant by ID
 export const getRestaurantById = async (req, res) => {

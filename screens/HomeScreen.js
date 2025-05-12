@@ -1,194 +1,212 @@
-import React, { useState, useEffect } from 'react';
+// File: screens/HomeScreen.js
+
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
-  SafeAreaView,
   TextInput,
-  TouchableOpacity,
   ScrollView,
+  TouchableOpacity,
+  StyleSheet,
+  Image,
   ActivityIndicator,
+  SafeAreaView,
+  Platform,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Ionicons } from '@expo/vector-icons';
+import axios from 'axios';
+import { BASE_URL } from '@env';
+import { useNavigation } from '@react-navigation/native';
 
-const BASE_URL = 'https://5a8b-94-66-154-234.ngrok-free.app';
+const imageMap = {
+  Pizza: require('../assets/images/Pizza/pizza1.jpg'),
+  Sushi: require('../assets/images/Sushi/sushi1.jpg'),
+  'Fast Food': require('../assets/images/Fast/fast1.jpg'),
+};
 
-const featuredItems = [
-  {
-    title: 'Pizza Specials',
-    description: "Check out this week's pizza deals.",
-    keywords: ['pizza'],
-    navigateTo: 'Pizza',
-    category: 'Pizza',
-  },
-  {
-    title: 'Sushi Spots',
-    description: 'Explore top-rated sushi restaurants.',
-    keywords: ['sushi'],
-    navigateTo: 'Sushi',
-    category: 'Sushi',
-  },
-  {
-    title: 'Fast & Hot',
-    description: 'Burgers delivered under 30 minutes.',
-    keywords: ['fast', 'burger'],
-    navigateTo: 'FastFood',
-    category: 'Fast Food',
-  },
-];
-
-export default function HomeScreen() {
-  const navigation = useNavigation();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [role, setRole] = useState(null);
-  const [availability, setAvailability] = useState({});
+const HomeScreen = () => {
+  const [fullName, setFullName] = useState('');
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const navigation = useNavigation();
 
   useEffect(() => {
-    const fetchRole = async () => {
-      const userRole = await AsyncStorage.getItem('userRole');
-      setRole(userRole);
-    };
-
-    const fetchAvailability = async () => {
+    const fetchUser = async () => {
       try {
-        const categories = featuredItems.map(item => item.category);
-        const results = await Promise.all(
-          categories.map(async (category) => {
-            const res = await fetch(`${BASE_URL}/api/reservations/check/category?name=${encodeURIComponent(category)}`);
-            const data = await res.json();
-            return { category, available: data.available };
-          })
-        );
+        const userId = await AsyncStorage.getItem('userId');
+        const token = await AsyncStorage.getItem('token');
 
-        const availabilityMap = {};
-        results.forEach(result => {
-          availabilityMap[result.category] = result.available;
+        if (!userId || !token) {
+          setFullName('');
+          return;
+        }
+
+        const url = `${BASE_URL}/api/users/${userId}`;
+        const response = await axios.get(url, {
+          headers: { Authorization: `Bearer ${token}` },
         });
 
-        setAvailability(availabilityMap);
-      } catch (err) {
-        console.error('Availability fetch error:', err);
+        const { name, surname } = response.data;
+        if (name && surname) {
+          setFullName(`${name} ${surname}`);
+        } else {
+          setFullName('');
+        }
+      } catch (error) {
+        setFullName('');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchRole();
-    fetchAvailability();
+    fetchUser();
+
+    const timeout = setTimeout(() => {
+      setLoading(false);
+    }, 7000);
+
+    return () => clearTimeout(timeout);
   }, []);
 
-  const filteredItems = featuredItems.filter(item =>
-    item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    item.keywords.some(kw => kw.includes(searchQuery.toLowerCase()))
-  );
+  const categories = [
+    { label: 'Pizza', screen: 'Pizza' },
+    { label: 'Sushi', screen: 'Sushi' },
+    { label: 'Fast Food', screen: 'FastFood' },
+  ];
 
-  const handleAccountPress = () => {
-    if (role === 'admin') {
-      navigation.navigate('Admin');
-    } else {
-      navigation.navigate('Account');
-    }
-  };
+  if (loading) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" color="#264098" />
+        <Text style={{ marginTop: 10 }}>Loading user data...</Text>
+      </View>
+    );
+  }
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.logo}>ServMe</Text>
-        <TouchableOpacity onPress={handleAccountPress}>
-          <Ionicons name="person-circle-outline" size={32} color="#264098" />
-        </TouchableOpacity>
-      </View>
+    <SafeAreaView style={styles.safe}>
+      <ScrollView contentContainerStyle={styles.wrapper}>
+        <View style={styles.header}>
+          <Text style={styles.welcome}>
+            Welcome, {fullName ? fullName : 'Guest'}!
+          </Text>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('Account')}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Ionicons name="person-circle-outline" size={32} color="#264098" />
+          </TouchableOpacity>
+        </View>
 
-      {/* Search Bar */}
-      <View style={styles.searchContainer}>
-        <Ionicons name="search" size={20} color="#888" style={styles.searchIcon} />
         <TextInput
-          placeholder="Search for restaurants..."
-          style={styles.searchInput}
-          value={searchQuery}
-          onChangeText={setSearchQuery}
+          placeholder="Search restaurants..."
+          placeholderTextColor="#aaa"
+          value={search}
+          onChangeText={setSearch}
+          style={styles.searchBar}
         />
-      </View>
 
-      {/* Main Content */}
-      <ScrollView contentContainerStyle={styles.content}>
-        {filteredItems.map((item, index) => {
-          const isAvailable = availability[item.category];
-          const isDisabled = isAvailable === false;
-
-          return (
+        <Text style={styles.sectionTitle}>Browse by Category</Text>
+        <View style={styles.grid}>
+          {categories.map((item, idx) => (
             <TouchableOpacity
-              key={index}
-              style={[styles.card, isDisabled && styles.cardDisabled]}
-              onPress={() => !isDisabled && navigation.navigate(item.navigateTo)}
-              disabled={isDisabled}
+              key={idx}
+              style={styles.card}
+              onPress={() => navigation.navigate(item.screen)}
             >
-              <Text style={styles.cardTitle}>{item.title}</Text>
-              <Text style={styles.cardText}>{item.description}</Text>
-              {loading ? (
-                <ActivityIndicator size="small" color="#888" style={{ marginTop: 4 }} />
-              ) : isDisabled ? (
-                <Text style={styles.unavailable}>Fully booked</Text>
-              ) : (
-                <Text style={styles.available}>Reservations available</Text>
-              )}
+              <Image source={imageMap[item.label]} style={styles.image} />
+              <Text style={styles.cardText}>{item.label}</Text>
             </TouchableOpacity>
-          );
-        })}
+          ))}
+        </View>
+
+        <TouchableOpacity
+          onPress={() => navigation.navigate('Account')}
+          style={styles.reservationBtn}
+        >
+          <Text style={styles.reservationText}>View My Reservations</Text>
+          <Ionicons name="arrow-forward" size={20} color="#fff" />
+        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FAFAFA' },
+  safe: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  wrapper: {
+    paddingHorizontal: 16,
+    paddingTop: Platform.OS === 'ios' ? 20 : 40,
+    paddingBottom: 40,
+  },
+  center: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   header: {
-    paddingHorizontal: 20,
-    paddingVertical: 15,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: 20,
   },
-  logo: { fontSize: 28, fontWeight: 'bold', color: '#264098' },
-  searchContainer: {
+  welcome: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1B1F3B',
+    flexShrink: 1,
+  },
+  searchBar: {
+    backgroundColor: '#f0f0f0',
+    borderRadius: 20,
+    padding: 12,
+    paddingLeft: 15,
+    fontSize: 16,
+    marginBottom: 24,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 10,
+    color: '#1B1F3B',
+  },
+  grid: {
     flexDirection: 'row',
-    backgroundColor: '#EFEFEF',
-    borderRadius: 12,
-    paddingHorizontal: 15,
-    paddingVertical: 10,
-    marginHorizontal: 20,
+    justifyContent: 'space-between',
+  },
+  card: {
+    width: '32%',
     alignItems: 'center',
   },
-  searchIcon: { marginRight: 10 },
-  searchInput: { flex: 1, fontSize: 16 },
-  content: { padding: 20 },
-  card: {
-    backgroundColor: '#FFF',
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 5,
-    elevation: 3,
+  image: {
+    width: '100%',
+    height: 80,
+    borderRadius: 10,
+    resizeMode: 'cover',
   },
-  cardDisabled: {
-    backgroundColor: '#E0E0E0',
+  cardText: {
+    marginTop: 8,
+    fontSize: 14,
+    fontWeight: '500',
   },
-  cardTitle: { fontSize: 18, fontWeight: '600', marginBottom: 8 },
-  cardText: { fontSize: 14, color: '#666' },
-  unavailable: {
-    color: 'red',
-    fontSize: 13,
-    marginTop: 6,
+  reservationBtn: {
+    flexDirection: 'row',
+    backgroundColor: '#264098',
+    padding: 14,
+    borderRadius: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 32,
   },
-  available: {
-    color: 'green',
-    fontSize: 13,
-    marginTop: 6,
+  reservationText: {
+    color: '#fff',
+    fontSize: 16,
+    marginRight: 8,
   },
 });
+
+export default HomeScreen;

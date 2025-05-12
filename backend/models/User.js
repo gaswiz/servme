@@ -1,3 +1,4 @@
+// models/User.js
 import { DataTypes } from 'sequelize';
 import sequelize from '../config/db.js';
 
@@ -18,21 +19,21 @@ const User = sequelize.define(
     },
     email: {
       type: DataTypes.STRING,
-      allowNull: false,
       unique: true,
+      allowNull: false,
     },
     password: {
       type: DataTypes.STRING,
       allowNull: false,
     },
     role: {
-      type: DataTypes.ENUM('user', 'admin'),
+      type: DataTypes.STRING,
       defaultValue: 'user',
     },
   },
   {
-    tableName: 'users',       // your actual MariaDB table name
-    timestamps: false,        // disable createdAt and updatedAt
+    tableName: 'users',
+    timestamps: false, // ✅ Fixes the SequelizeDatabaseError
   }
 );
 

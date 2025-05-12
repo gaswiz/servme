@@ -1,172 +1,123 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
-  Image,
-  TouchableOpacity,
   SafeAreaView,
+  Image,
+  ScrollView,
+  TouchableOpacity,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 
-const BASE_URL = 'https://5a8b-94-66-154-234.ngrok-free.app';
-
-const fastFoodImages = [
-  require('../assets/images/Fast/fast1.jpg'),
-  require('../assets/images/Fast/fast2.jpg'),
-  require('../assets/images/Fast/fast3.jpg'),
-  require('../assets/images/Fast/fast4.jpg'),
-  require('../assets/images/Fast/fast5.jpg'),
+const fastFoodRestaurants = [
+  {
+    id: 7,
+    name: 'Burger Blast',
+    image: require('../assets/images/Fast/fast1.jpg'),
+    description: 'Juicy burgers and crispy fries.',
+  },
+  {
+    id: 8,
+    name: 'FryKing',
+    image: require('../assets/images/Fast/fast2.jpg'),
+    description: 'Fast service, loaded combos.',
+  },
+  {
+    id: 9,
+    name: 'Grill n’ Go',
+    image: require('../assets/images/Fast/fast3.jpg'),
+    description: 'Hot off the grill, ready to go.',
+  },
 ];
 
-const restaurantNames = [
-  'Burger Blitz',
-  'Fry Shack',
-  'Taco Town',
-  'Grill N Go',
-  'Snack Express',
-];
-
-export default function FastScreen() {
+export default function FastFoodScreen() {
   const navigation = useNavigation();
-  const [availabilityData, setAvailabilityData] = useState({});
-
-  useEffect(() => {
-    const fetchAvailability = async () => {
-      try {
-        const responses = await Promise.all(
-          restaurantNames.map(name =>
-            fetch(`${BASE_URL}/api/reservations/check?restaurant=${encodeURIComponent(name)}`)
-          )
-        );
-        const results = await Promise.all(responses.map(res => res.json()));
-
-        const availabilityMap = {};
-        results.forEach((result, i) => {
-          availabilityMap[restaurantNames[i]] = result.count;
-        });
-
-        setAvailabilityData(availabilityMap);
-      } catch (error) {
-        console.error('Availability fetch error:', error);
-      }
-    };
-
-    fetchAvailability();
-  }, []);
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.topBar}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
+    <SafeAreaView style={styles.safeArea}>
+      <ScrollView contentContainerStyle={styles.container}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
           <Ionicons name="arrow-back" size={28} color="#264098" />
         </TouchableOpacity>
-      </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.heading}>Fast & Hot</Text>
+        <Text style={styles.header}>Fast Food Restaurants</Text>
 
-        {restaurantNames.map((name, index) => {
-          const count = availabilityData[name] ?? 0;
-          return (
-            <View key={index} style={styles.card}>
-              <Image source={fastFoodImages[index]} style={styles.cardImage} />
-              <View style={styles.cardTextContainer}>
-                <Text style={styles.cardTitle}>{name}</Text>
-                <Text style={styles.cardText}>Delicious fast food, served quick and hot!</Text>
-                <Text style={styles.availability}>
-                  {count > 0 ? `Available reservations: ${count}` : 'Fully booked'}
-                </Text>
+        {fastFoodRestaurants.map((restaurant) => (
+          <TouchableOpacity
+            key={restaurant.id}
+            style={styles.card}
+            onPress={() =>
+              navigation.navigate('Reservation', {
+                restaurantId: restaurant.id,
+                restaurantName: restaurant.name,
+              })
+            }
+          >
+            <Image source={restaurant.image} style={styles.image} />
+            <Text style={styles.cardTitle}>{restaurant.name}</Text>
+            <Text style={styles.cardDescription}>{restaurant.description}</Text>
+          </TouchableOpacity>
+        ))}
 
-                <TouchableOpacity
-                  style={[styles.button, count === 0 && styles.disabledButton]}
-                  onPress={() =>
-                    count > 0 &&
-                    navigation.navigate('Reservation', {
-                      name,
-                      image: fastFoodImages[index],
-                    })
-                  }
-                  disabled={count === 0}
-                >
-                  <Text style={styles.buttonText}>
-                    {count === 0 ? 'Unavailable' : 'Reserve'}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          );
-        })}
+        <Text style={styles.description}>
+          Explore the top fast food spots and grab a quick bite anytime!
+        </Text>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
-    backgroundColor: '#FAFAFA',
+    backgroundColor: '#fff',
   },
-  topBar: {
-    padding: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
+  container: {
+    paddingTop: 60,
+    paddingHorizontal: 16,
+    paddingBottom: 30,
   },
-  scrollContent: {
-    padding: 20,
+  backBtn: {
+    position: 'absolute',
+    top: 20,
+    left: 16,
+    zIndex: 10,
   },
-  heading: {
-    fontSize: 22,
+  header: {
+    fontSize: 24,
     fontWeight: 'bold',
+    textAlign: 'center',
     marginBottom: 20,
-    color: '#264098',
   },
   card: {
-    backgroundColor: '#FFF',
-    borderRadius: 16,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 15,
+    padding: 10,
     marginBottom: 20,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 5,
-    elevation: 3,
   },
-  cardImage: {
+  image: {
     width: '100%',
     height: 160,
-  },
-  cardTextContainer: {
-    padding: 15,
+    borderRadius: 10,
+    resizeMode: 'cover',
   },
   cardTitle: {
-    fontSize: 18,
+    marginTop: 10,
     fontWeight: '600',
-    marginBottom: 6,
+    fontSize: 16,
+    textAlign: 'center',
   },
-  cardText: {
+  cardDescription: {
     fontSize: 14,
-    color: '#666',
-    marginBottom: 6,
+    textAlign: 'center',
+    color: '#555',
+    marginTop: 4,
   },
-  availability: {
+  description: {
     fontSize: 14,
-    color: '#264098',
-    fontWeight: '500',
-    marginBottom: 12,
-  },
-  button: {
-    backgroundColor: '#264098',
-    paddingVertical: 10,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  buttonText: {
-    color: '#FFF',
-    fontWeight: 'bold',
-  },
-  disabledButton: {
-    backgroundColor: '#999',
+    textAlign: 'center',
+    color: '#333',
   },
 });

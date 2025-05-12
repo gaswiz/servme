@@ -1,3 +1,5 @@
+// screens/SupportScreen.js
+
 import React from 'react';
 import {
   View,
@@ -8,16 +10,24 @@ import {
   Alert,
   SafeAreaView,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 
 export default function SupportScreen() {
+  const navigation = useNavigation();
+
   const handleSupport = () => {
     Alert.alert('Support', 'This is for development purposes xD');
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <Text style={styles.heading}>Frequently Asked Questions</Text>
+    <SafeAreaView style={styles.safeArea}>
+      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+          <Ionicons name="arrow-back" size={28} color="#264098" />
+        </TouchableOpacity>
+
+        <Text style={styles.header}>Frequently Asked Questions</Text>
 
         <View style={styles.faqSection}>
           <Text style={styles.question}>How do I make a reservation?</Text>
@@ -39,26 +49,42 @@ export default function SupportScreen() {
         <TouchableOpacity style={styles.button} onPress={handleSupport}>
           <Text style={styles.buttonText}>Contact Support</Text>
         </TouchableOpacity>
+
+        <View style={styles.noteBox}>
+          <Text style={styles.noteText}>
+            ℹ️ Η εφαρμογή ServMe δημιουργήθηκε ως μέρος πανεπιστημιακού έργου.
+            Μέσα από την οθόνη υποστήριξης μπορείτε να βρείτε απαντήσεις σε βασικές ερωτήσεις
+            και να επικοινωνήσετε για βοήθεια.
+            Η ανάπτυξη πραγματοποιήθηκε από τον Κωνσταντίνο Παναγιωταρόπουλο.
+          </Text>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
-    backgroundColor: '#FAFAFA',
+    backgroundColor: '#fff',
   },
-  scrollContent: {
+  container: {
+    paddingTop: 60,
     paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 40,
+    paddingBottom: 30,
   },
-  heading: {
-    fontSize: 22,
+  backBtn: {
+    position: 'absolute',
+    top: 20,
+    left: 16,
+    zIndex: 10,
+  },
+  header: {
+    fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 20,
+    textAlign: 'center',
     color: '#264098',
+    marginBottom: 20,
   },
   faqSection: {
     marginBottom: 30,
@@ -79,10 +105,22 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: 'center',
+    marginBottom: 20,
   },
   buttonText: {
     color: '#FFF',
     fontSize: 16,
     fontWeight: '600',
+  },
+  noteBox: {
+    backgroundColor: '#FFF3CD',
+    padding: 15,
+    borderRadius: 12,
+    marginTop: 10,
+  },
+  noteText: {
+    fontSize: 14,
+    color: '#856404',
+    textAlign: 'center',
   },
 });

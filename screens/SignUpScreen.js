@@ -1,19 +1,22 @@
-// SignUpScreen.js (with real-time validation and animated warnings)
-import React, { useState, useEffect } from 'react';
+// screens/SignUpScreen.js
+
+import React, { useState } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   TextInput,
   TouchableOpacity,
+  StyleSheet,
   SafeAreaView,
-  ScrollView,
   Alert,
-  Animated,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
-
-const BASE_URL = 'https://5a8b-94-66-154-234.ngrok-free.app';
+import { BASE_URL } from '@env';
 
 export default function SignUpScreen() {
   const navigation = useNavigation();
@@ -24,151 +27,168 @@ export default function SignUpScreen() {
     email: '',
     password: '',
   });
+  const [loading, setLoading] = useState(false);
 
-  const [errors, setErrors] = useState({});
-  const [fadeAnim] = useState(new Animated.Value(0));
-
-  useEffect(() => {
-    const allValid =
-      !Object.values(errors).some(Boolean) &&
-      Object.values(form).every(value => value.trim() !== '');
-
-    Animated.timing(fadeAnim, {
-      toValue: allValid ? 0 : 1,
-      duration: 300,
-      useNativeDriver: true,
-    }).start();
-  }, [errors, form]);
-
-  const validate = (field, value) => {
-    let error = '';
-    switch (field) {
-      case 'name':
-      case 'surname':
-        if (!/^[A-Za-z]+$/.test(value)) error = 'Only letters allowed';
-        break;
-      case 'phone':
-        if (!/^\d{10}$/.test(value)) error = 'Phone must be 10 digits';
-        break;
-      case 'email':
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) error = 'Invalid email';
-        break;
-      case 'password':
-        if (value.length < 1 || value.length > 10)
-          error = 'Password must be 1-10 characters';
-        break;
-    }
-    setErrors(prev => ({ ...prev, [field]: error }));
-    setForm(prev => ({ ...prev, [field]: value }));
+  const handleChange = (key, value) => {
+    setForm(prev => ({ ...prev, [key]: value }));
   };
 
   const handleSubmit = async () => {
-    const anyError = Object.values(errors).some(e => e);
-    const anyEmpty = Object.values(form).some(v => v.trim() === '');
-    if (anyError || anyEmpty) return;
+    const empty = Object.values(form).some(v => v.trim() === '');
+    if (empty) {
+      Alert.alert('Missing Fields', 'Please complete all fields.');
+      return;
+    }
 
+    setLoading(true);
     try {
       const res = await fetch(`${BASE_URL}/api/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
       });
-
       const data = await res.json();
-
       if (res.ok) {
-        Alert.alert('Success', 'Account created successfully!');
-        navigation.navigate('Login');
+        await AsyncStorage.setItem('token', data.token);
+        await AsyncStorage.setItem('userId', data.id.toString());
+        await AsyncStorage.setItem('userRole', data.role);
+        if (data.role === 'admin') {
+          navigation.replace('Admin');
+        } else {
+          navigation.replace('MainTabs');
+        }
       } else {
-        Alert.alert('Error', data.message || 'Something went wrong');
+        Alert.alert('Signup Failed', data.message || 'Something went wrong');
       }
-    } catch (error) {
-      console.error('Signup error:', error);
-      Alert.alert('Error', 'Server error');
+    } catch (err) {
+      console.error('[SignUpScreen] Server error:', err.message);
+      Alert.alert('Error', 'Server error during registration');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.title}>ServMe</Text>
+    <SafeAreaView style={styles.safe}>
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.flex}>
+        <ScrollView contentContainerStyle={styles.container}>
+          <Text style={styles.title}>Create Account</Text>
+          <Text style={styles.subtitle}>Sign up to get started</Text>
 
-        {['name', 'surname', 'phone', 'email', 'password'].map((field, index) => (
-          <View key={index}>
+          <View style={styles.inputContainer}>
             <TextInput
-              placeholder={field[0].toUpperCase() + field.slice(1)}
-              style={[styles.input, errors[field] && styles.errorInput]}
-              onChangeText={value => validate(field, value)}
-              value={form[field]}
-              secureTextEntry={field === 'password'}
-              keyboardType={field === 'phone' ? 'numeric' : 'default'}
-              maxLength={field === 'phone' ? 10 : undefined}
+              placeholder="Name"
+              placeholderTextColor="#000"
+              value={form.name}
+              onChangeText={text => handleChange('name', text)}
+              style={styles.input}
             />
-            {errors[field] && (
-              <Animated.Text style={{ ...styles.errorText, opacity: fadeAnim }}>
-                {errors[field]}
-              </Animated.Text>
-            )}
+            <TextInput
+              placeholder="Surname"
+              placeholderTextColor="#000"
+              value={form.surname}
+              onChangeText={text => handleChange('surname', text)}
+              style={styles.input}
+            />
+            <TextInput
+              placeholder="Phone"
+              placeholderTextColor="#000"
+              value={form.phone}
+              onChangeText={text => handleChange('phone', text)}
+              style={styles.input}
+              keyboardType="numeric"
+              maxLength={10}
+            />
+            <TextInput
+              placeholder="Email"
+              placeholderTextColor="#000"
+              value={form.email}
+              onChangeText={text => handleChange('email', text)}
+              style={styles.input}
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
+            <TextInput
+              placeholder="Password"
+              placeholderTextColor="#000"
+              value={form.password}
+              onChangeText={text => handleChange('password', text)}
+              style={styles.input}
+              secureTextEntry
+            />
           </View>
-        ))}
 
-        <TouchableOpacity
-          style={[styles.button, Object.values(errors).some(Boolean) && styles.buttonDisabled]}
-          onPress={handleSubmit}
-          disabled={Object.values(errors).some(Boolean)}
-        >
-          <Text style={styles.buttonText}>Sign Up</Text>
-        </TouchableOpacity>
+          <TouchableOpacity style={styles.button} onPress={handleSubmit} disabled={loading}>
+            {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Sign Up</Text>}
+          </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-          <Text style={styles.linkText}>Already have an account? Click here to login</Text>
-        </TouchableOpacity>
-      </ScrollView>
+          <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+            <Text style={styles.linkText}>Already have an account? Login</Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FAFAFA' },
-  scrollContent: { padding: 20, paddingTop: 60 },
+  safe: {
+    flex: 1,
+    backgroundColor: '#F8F9FB',
+  },
+  flex: {
+    flex: 1,
+  },
+  container: {
+    padding: 24,
+    paddingTop: 60,
+    paddingBottom: 40,
+  },
   title: {
-    fontSize: 26,
-    fontWeight: 'bold',
-    color: '#264098',
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#1B1F3B',
     textAlign: 'center',
-    marginBottom: 30,
+    marginBottom: 6,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#707070',
+    textAlign: 'center',
+    marginBottom: 28,
+  },
+  inputContainer: {
+    marginBottom: 20,
   },
   input: {
-    backgroundColor: '#EFEFEF',
-    borderRadius: 12,
-    padding: 14,
-    marginBottom: 10,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 18,
     fontSize: 16,
-  },
-  errorInput: {
-    borderColor: 'red',
-    borderWidth: 1,
-  },
-  errorText: {
-    color: 'red',
-    fontSize: 13,
-    marginBottom: 10,
-    marginLeft: 5,
+    marginBottom: 14,
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 2,
   },
   button: {
     backgroundColor: '#264098',
-    padding: 14,
-    borderRadius: 12,
+    paddingVertical: 14,
+    borderRadius: 14,
     alignItems: 'center',
-    marginVertical: 20,
-  },
-  buttonDisabled: {
-    backgroundColor: '#AAB3C2',
+    marginBottom: 24,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 3,
   },
   buttonText: {
     color: '#FFF',
     fontWeight: 'bold',
-    fontSize: 16,
+    fontSize: 17,
   },
   linkText: {
     textAlign: 'center',

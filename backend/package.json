@@ -4,22 +4,21 @@
   "type": "module",
   "main": "server.js",
   "scripts": {
-    "dev": "nodemon server.js",
-    "start": "node server.js"
+    "dev": "nodemon server.js"
   },
   "dependencies": {
-    "argon2": "^0.41.1",
     "bcrypt": "^5.1.1",
     "bcryptjs": "^3.0.2",
+    "body-parser": "^1.20.2",
     "cors": "^2.8.5",
-    "dotenv": "^16.5.0",
-    "express": "^5.1.0",
+    "dotenv": "^16.4.7",
+    "express": "^5.0.0",
     "jsonwebtoken": "^9.0.2",
     "mariadb": "^3.4.1",
-    "sequelize": "^6.37.7",
-    "lottie-react-native": "7.1.0"
+    "morgan": "^1.10.0",
+    "sequelize": "^6.37.1"
   },
   "devDependencies": {
-    "nodemon": "^3.1.9"
+    "nodemon": "^3.1.0"
   }
 }

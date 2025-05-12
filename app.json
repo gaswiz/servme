@@ -3,9 +3,17 @@
     "name": "servme",
     "slug": "servme",
     "version": "1.0.0",
-    "sdkVersion": "52.0.0",
+    "sdkVersion": "53.0.0",
     "entryPoint": "./App.js",
     "newArchEnabled": true,
-    "scheme": "servme"
+    "scheme": "servme",
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
+    "plugins": [
+      "expo-secure-store"
+    ]
   }
 }

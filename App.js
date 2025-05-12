@@ -1,14 +1,14 @@
 // App.js
+
 import { registerRootComponent } from 'expo';
 import React, { useEffect, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons, MaterialIcons, FontAwesome } from '@expo/vector-icons';
-import { StatusBar, ActivityIndicator, View } from 'react-native';
+import { StatusBar, ActivityIndicator, View, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Screens
 import HomeScreen from './screens/HomeScreen';
 import RestaurantsScreen from './screens/RestaurantsScreen';
 import SupportScreen from './screens/SupportScreen';
@@ -62,11 +62,15 @@ function AppNavigator() {
 
   useEffect(() => {
     const initialize = async () => {
-      // FOR TESTING ONLY — remove or comment out after development
-      await AsyncStorage.clear();
-
+      // Commented out to retain session on web
+      // if (Platform.OS === 'web') {
+      //   await AsyncStorage.clear();
+      // }
       const token = await AsyncStorage.getItem('token');
       const role = await AsyncStorage.getItem('userRole');
+
+      console.log('[AppNavigator] Token:', token);
+      console.log('[AppNavigator] Role:', role);
 
       if (token && role === 'admin') {
         setInitialRoute('Admin');
@@ -98,6 +102,7 @@ function AppNavigator() {
       <Stack.Screen name="Pizza" component={PizzaScreen} options={{ headerShown: false }} />
       <Stack.Screen name="FastFood" component={FastFoodScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Sushi" component={SushiScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="Burger" component={FastFoodScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Reservation" component={ReservationScreen} options={{ headerShown: false }} />
     </Stack.Navigator>
   );

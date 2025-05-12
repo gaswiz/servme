@@ -1,172 +1,123 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
-  Image,
-  TouchableOpacity,
   SafeAreaView,
+  Image,
+  ScrollView,
+  TouchableOpacity,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 
-const BASE_URL = 'https://5a8b-94-66-154-234.ngrok-free.app';
-
-const sushiImages = [
-  require('../assets/images/Sushi/sushi1.jpg'),
-  require('../assets/images/Sushi/sushi2.jpg'),
-  require('../assets/images/Sushi/sushi3.jpg'),
-  require('../assets/images/Sushi/sushi4.jpg'),
-  require('../assets/images/Sushi/sushi5.jpg'),
-];
-
-const restaurantNames = [
-  'Sushi Central',
-  'Wasabi Wonders',
-  'Tokyo Rolls',
-  'Samurai Sushi',
-  'Nigiri Nest',
+const sushiRestaurants = [
+  {
+    id: 4,
+    name: 'Sakura Zen',
+    image: require('../assets/images/Sushi/sushi1.jpg'),
+    description: 'Elegant sushi dining with premium ingredients.',
+  },
+  {
+    id: 5,
+    name: 'Tokyo Bites',
+    image: require('../assets/images/Sushi/sushi2.jpg'),
+    description: 'Authentic Japanese sushi experience.',
+  },
+  {
+    id: 6,
+    name: 'Wasabi Wave',
+    image: require('../assets/images/Sushi/sushi3.jpg'),
+    description: 'Fusion rolls and classic sushi dishes.',
+  },
 ];
 
 export default function SushiScreen() {
   const navigation = useNavigation();
-  const [availabilityData, setAvailabilityData] = useState({});
-
-  useEffect(() => {
-    const fetchAvailability = async () => {
-      try {
-        const responses = await Promise.all(
-          restaurantNames.map(name =>
-            fetch(`${BASE_URL}/api/reservations/check?restaurant=${encodeURIComponent(name)}`)
-          )
-        );
-        const results = await Promise.all(responses.map(res => res.json()));
-
-        const availabilityMap = {};
-        results.forEach((result, i) => {
-          availabilityMap[restaurantNames[i]] = result.count;
-        });
-
-        setAvailabilityData(availabilityMap);
-      } catch (error) {
-        console.error('Availability fetch error:', error);
-      }
-    };
-
-    fetchAvailability();
-  }, []);
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.topBar}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
+    <SafeAreaView style={styles.safeArea}>
+      <ScrollView contentContainerStyle={styles.container}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
           <Ionicons name="arrow-back" size={28} color="#264098" />
         </TouchableOpacity>
-      </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.heading}>Sushi Spots</Text>
+        <Text style={styles.header}>Sushi Restaurants</Text>
 
-        {restaurantNames.map((name, index) => {
-          const count = availabilityData[name] ?? 0;
-          return (
-            <View key={index} style={styles.card}>
-              <Image source={sushiImages[index]} style={styles.cardImage} />
-              <View style={styles.cardTextContainer}>
-                <Text style={styles.cardTitle}>{name}</Text>
-                <Text style={styles.cardText}>Fresh sushi from master chefs.</Text>
-                <Text style={styles.availability}>
-                  {count > 0 ? `Available reservations: ${count}` : 'Fully booked'}
-                </Text>
+        {sushiRestaurants.map((restaurant) => (
+          <TouchableOpacity
+            key={restaurant.id}
+            style={styles.card}
+            onPress={() =>
+              navigation.navigate('Reservation', {
+                restaurantId: restaurant.id,
+                restaurantName: restaurant.name,
+              })
+            }
+          >
+            <Image source={restaurant.image} style={styles.image} />
+            <Text style={styles.cardTitle}>{restaurant.name}</Text>
+            <Text style={styles.cardDescription}>{restaurant.description}</Text>
+          </TouchableOpacity>
+        ))}
 
-                <TouchableOpacity
-                  style={[styles.button, count === 0 && styles.disabledButton]}
-                  onPress={() =>
-                    count > 0 &&
-                    navigation.navigate('Reservation', {
-                      name,
-                      image: sushiImages[index],
-                    })
-                  }
-                  disabled={count === 0}
-                >
-                  <Text style={styles.buttonText}>
-                    {count === 0 ? 'Unavailable' : 'Reserve'}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          );
-        })}
+        <Text style={styles.description}>
+          Explore the finest sushi places with fresh ingredients and cozy vibes.
+        </Text>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
-    backgroundColor: '#FAFAFA',
+    backgroundColor: '#fff',
   },
-  topBar: {
-    padding: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
+  container: {
+    paddingTop: 60,
+    paddingHorizontal: 16,
+    paddingBottom: 30,
   },
-  scrollContent: {
-    padding: 20,
+  backBtn: {
+    position: 'absolute',
+    top: 20,
+    left: 16,
+    zIndex: 10,
   },
-  heading: {
-    fontSize: 22,
+  header: {
+    fontSize: 24,
     fontWeight: 'bold',
+    textAlign: 'center',
     marginBottom: 20,
-    color: '#264098',
   },
   card: {
-    backgroundColor: '#FFF',
-    borderRadius: 16,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 15,
+    padding: 10,
     marginBottom: 20,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 5,
-    elevation: 3,
   },
-  cardImage: {
+  image: {
     width: '100%',
     height: 160,
-  },
-  cardTextContainer: {
-    padding: 15,
+    borderRadius: 10,
+    resizeMode: 'cover',
   },
   cardTitle: {
-    fontSize: 18,
+    marginTop: 10,
     fontWeight: '600',
-    marginBottom: 6,
+    fontSize: 16,
+    textAlign: 'center',
   },
-  cardText: {
+  cardDescription: {
     fontSize: 14,
-    color: '#666',
-    marginBottom: 6,
+    textAlign: 'center',
+    color: '#555',
+    marginTop: 4,
   },
-  availability: {
+  description: {
     fontSize: 14,
-    color: '#264098',
-    fontWeight: '500',
-    marginBottom: 12,
-  },
-  button: {
-    backgroundColor: '#264098',
-    paddingVertical: 10,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  buttonText: {
-    color: '#FFF',
-    fontWeight: 'bold',
-  },
-  disabledButton: {
-    backgroundColor: '#999',
+    textAlign: 'center',
+    color: '#333',
   },
 });

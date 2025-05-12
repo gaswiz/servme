@@ -1,59 +1,35 @@
-// backend/controllers/authController.js
-
-import jwt from 'jsonwebtoken';
-import bcrypt from 'bcryptjs';
-import dotenv from 'dotenv';
+// userController.js
 import User from '../models/User.js';
 
-dotenv.config();
-
-// ✅ Generate JWT token
-const generateToken = (user) => {
-  return jwt.sign(
-    { id: user.id, role: user.role },
-    process.env.JWT_SECRET,
-    { expiresIn: '30d' }
-  );
-};
-
-// ✅ LOGIN: Exported function
-export const loginUser = async (req, res) => {
-  const { email, password } = req.body;
+export const getUserById = async (req, res) => {
+  const { id } = req.params;
+  console.log('[userController] getUserById called with ID:', id);
 
   try {
-    const user = await User.findOne({ where: { email } });
+    const user = await User.findByPk(id);
 
-    if (!user) return res.status(404).json({ message: 'User not found' });
+    if (!user) {
+      console.log('[userController] User not found:', id);
+      return res.status(404).json({ message: 'User not found' });
+    }
 
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(401).json({ message: 'Invalid credentials' });
-
-    const token = generateToken(user);
-
-    res.json({
-      id: user.id,
-      email: user.email,
-      role: user.role,
-      token,
-    });
+    console.log('[userController] User found:', user.email);
+    res.json(user);
   } catch (error) {
-    console.error('Login error:', error);
+    console.error('[userController] getUserById error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
 
-// ✅ GET USER BY ID
-export const getUserById = async (req, res) => {
+export const getAllUsers = async (req, res) => {
+  console.log('[userController] getAllUsers called');
+
   try {
-    const user = await User.findByPk(req.params.id, {
-      attributes: ['id', 'name', 'surname', 'email', 'phone', 'role'],
-    });
-
-    if (!user) return res.status(404).json({ message: 'User not found' });
-
-    res.json(user);
+    const users = await User.findAll();
+    console.log('[userController] Total users fetched:', users.length);
+    res.json(users);
   } catch (error) {
-    console.error('Get user error:', error);
+    console.error('[userController] getAllUsers error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };

@@ -1,95 +1,92 @@
-// backend/controllers/reservationController.js
+// reservationController.js
 import Reservation from '../models/Reservation.js';
+import db from '../config/db.js';
 
-// Create a new reservation
 export const createReservation = async (req, res) => {
-  const { date, time, people, restaurant } = req.body;
+  console.log('[reservationController] createReservation called');
+  console.log('Request body:', req.body);
 
-  if (!date || !time || !people || !restaurant) {
-    return res.status(400).json({ message: 'Missing fields' });
-  }
+  const { restaurant, people, date, time } = req.body;
+  const userId = req.user?.id || req.body.userId;
 
   try {
-    const newReservation = await Reservation.create({
+    const existing = await Reservation.count({
+      where: { restaurant },
+    });
+
+    if (existing >= 10) {
+      console.log('[reservationController] Fully booked:', restaurant);
+      return res.status(400).json({ message: 'This restaurant is fully booked' });
+    }
+
+    const reservation = await Reservation.create({
+      userId,
+      restaurant,
+      people,
       date,
       time,
-      people,
-      restaurant,
-      userId: req.user.id,
     });
 
-    res.status(201).json({
-      message: 'Reservation confirmed!',
-      reservation: newReservation,
-    });
+    console.log('[reservationController] Reservation created:', reservation.id);
+    res.status(201).json(reservation);
   } catch (error) {
-    console.error('Create reservation error:', error);
+    console.error('[reservationController] Error creating reservation:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
 
-// ✅ Check availability for a specific restaurant
-export const checkAvailability = async (req, res) => {
-  const restaurantName = decodeURIComponent(req.params.restaurantName).trim();
-
-  try {
-    const reservations = await Reservation.findAll({
-      where: { restaurant: restaurantName },
-    });
-
-    const totalReserved = reservations.reduce((sum, r) => sum + r.people, 0);
-    const maxCapacity = 10; // per restaurant
-    const available = totalReserved < maxCapacity;
-
-    res.json({
-      available,
-      count: maxCapacity - totalReserved,
-    });
-  } catch (error) {
-    console.error('Availability check error:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-};
-
-
-// Optional: get all reservations
 export const getAllReservations = async (req, res) => {
+  console.log('[reservationController] getAllReservations called');
   try {
     const reservations = await Reservation.findAll();
     res.json(reservations);
   } catch (error) {
-    console.error('Get all reservations error:', error);
+    console.error('[reservationController] getAllReservations error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
 
+export const deleteReservation = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const deleted = await Reservation.destroy({ where: { id } });
 
-// In reservationController.js
-export const checkCategoryAvailability = async (req, res) => {
-  const category = req.query.name;
+    if (deleted === 0) {
+      return res.status(404).json({ message: 'Reservation not found' });
+    }
+
+    res.json({ message: 'Reservation deleted' });
+  } catch (err) {
+    console.error('[reservationController] Error deleting reservation:', err);
+    res.status(500).json({ message: 'Error deleting reservation', error: err });
+  }
+};
+
+
+
+export const getUserReservations = async (req, res) => {
+  const { userId } = req.params;
+  console.log('[reservationController] getUserReservations called with ID:', userId);
 
   try {
-    // 1. Get all restaurants in that category
-    const restaurants = await Restaurant.findAll({ where: { category } });
-    const ids = restaurants.map(r => r.name);
+    const reservations = await Reservation.findAll({ where: { userId } });
+    res.json(reservations);
+  } catch (error) {
+    console.error('[reservationController] getUserReservations error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
 
-    // 2. Find how many reservations each restaurant has
-    const reservations = await Reservation.findAll({
-      where: { restaurant: ids },
-    });
+export const checkCategoryAvailability = async (req, res) => {
+  const { restaurant } = req.query;
+  console.log('[reservationController] checkCategoryAvailability called:', restaurant);
 
-    // 3. Count per restaurant
-    const counts = {};
-    ids.forEach(name => { counts[name] = 0 });
-    reservations.forEach(r => {
-      counts[r.restaurant] += 1;
-    });
-
-    const isAvailable = Object.values(counts).some(c => c < 10);
-
-    res.json({ available: isAvailable, counts });
-  } catch (err) {
-    console.error('Category check error:', err);
+  try {
+    const count = await Reservation.count({ where: { restaurant } });
+    const available = count < 10;
+    res.json({ available, reserved: count });
+  } catch (error) {
+    console.error('[reservationController] checkCategoryAvailability error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };

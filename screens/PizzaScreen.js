@@ -1,183 +1,124 @@
-// PizzaScreen.js
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
-  Image,
-  TouchableOpacity,
   SafeAreaView,
-  ActivityIndicator,
+  Image,
+  ScrollView,
+  TouchableOpacity,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 
-const BASE_URL = 'https://5a8b-94-66-154-234.ngrok-free.app';
-
-const pizzaImages = [
-  require('../assets/images/Pizza/pizza1.jpg'),
-  require('../assets/images/Pizza/pizza2.jpg'),
-  require('../assets/images/Pizza/pizza3.jpg'),
-  require('../assets/images/Pizza/pizza4.jpg'),
-  require('../assets/images/Pizza/pizza5.jpg'),
+const pizzaRestaurants = [
+  {
+    id: 1,
+    name: 'Napoli Express',
+    image: require('../assets/images/Pizza/pizza1.jpg'),
+    description: 'Classic Neapolitan pizza with fresh ingredients.',
+  },
+  {
+    id: 2,
+    name: 'PizzArte',
+    image: require('../assets/images/Pizza/pizza2.jpg'),
+    description: 'Artisan wood-fired pizza with rich flavor.',
+  },
+  {
+    id: 3,
+    name: 'Mamma Mia Pizzeria',
+    image: require('../assets/images/Pizza/pizza3.jpg'),
+    description: 'Traditional Italian pizza with a crispy crust.',
+  },
 ];
 
-const restaurantNames = [
-  'Pizza Palace',
-  'Mamma Mia Pizzeria',
-  'Cheesy Heaven',
-  'Napoli’s Finest',
-  'Crispy Crust Co.',
-];
 
 export default function PizzaScreen() {
   const navigation = useNavigation();
-  const [availabilityData, setAvailabilityData] = useState({});
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchAvailability = async () => {
-      try {
-        const responses = await Promise.all(
-          restaurantNames.map(name =>
-            fetch(`${BASE_URL}/api/reservations/check?restaurant=${encodeURIComponent(name)}`)
-          )
-        );
-        const results = await Promise.all(responses.map(res => res.json()));
-
-        const availabilityMap = {};
-        results.forEach((result, i) => {
-          availabilityMap[restaurantNames[i]] = result.count;
-        });
-
-        setAvailabilityData(availabilityMap);
-      } catch (error) {
-        console.error('Availability fetch error:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchAvailability();
-  }, []);
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.topBar}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
+    <SafeAreaView style={styles.safeArea}>
+      <ScrollView contentContainerStyle={styles.container}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
           <Ionicons name="arrow-back" size={28} color="#264098" />
         </TouchableOpacity>
-      </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.heading}>Pizza Specials</Text>
+        <Text style={styles.header}>Pizza Restaurants</Text>
 
-        {loading ? (
-          <ActivityIndicator size="large" color="#264098" />
-        ) : (
-          restaurantNames.map((name, index) => {
-            const count = availabilityData[name] ?? 0;
-            return (
-              <View key={index} style={styles.card}>
-                <Image source={pizzaImages[index]} style={styles.cardImage} />
-                <View style={styles.cardTextContainer}>
-                  <Text style={styles.cardTitle}>{name}</Text>
-                  <Text style={styles.cardText}>Wood-fired pizzas with fresh ingredients.</Text>
-                  <Text style={styles.availability}>
-                    {count < 10
-                      ? `Available reservations: ${10 - count}`
-                      : 'Fully booked'}
-                  </Text>
+        {pizzaRestaurants.map((restaurant) => (
+          <TouchableOpacity
+            key={restaurant.id}
+            style={styles.card}
+            onPress={() =>
+              navigation.navigate('Reservation', {
+                restaurantId: restaurant.id,
+                restaurantName: restaurant.name,
+              })
+            }
+          >
+            <Image source={restaurant.image} style={styles.image} />
+            <Text style={styles.cardTitle}>{restaurant.name}</Text>
+            <Text style={styles.cardDescription}>{restaurant.description}</Text>
+          </TouchableOpacity>
+        ))}
 
-                  <TouchableOpacity
-                    style={[styles.button, count >= 10 && styles.disabledButton]}
-                    onPress={() =>
-                      count < 10 &&
-                      navigation.navigate('Reservation', {
-                        name,
-                        image: pizzaImages[index],
-                      })
-                    }
-                    disabled={count >= 10}
-                  >
-                    <Text style={styles.buttonText}>
-                      {count >= 10 ? 'Unavailable' : 'Reserve'}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            );
-          })
-        )}
+        <Text style={styles.description}>
+          These are popular pizza spots you can explore and make reservations at.
+        </Text>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
-    backgroundColor: '#FAFAFA',
+    backgroundColor: '#fff',
   },
-  topBar: {
-    padding: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
+  container: {
+    paddingTop: 60,
+    paddingHorizontal: 16,
+    paddingBottom: 30,
   },
-  scrollContent: {
-    padding: 20,
+  backBtn: {
+    position: 'absolute',
+    top: 20,
+    left: 16,
+    zIndex: 10,
   },
-  heading: {
-    fontSize: 22,
+  header: {
+    fontSize: 24,
     fontWeight: 'bold',
+    textAlign: 'center',
     marginBottom: 20,
-    color: '#264098',
   },
   card: {
-    backgroundColor: '#FFF',
-    borderRadius: 16,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 15,
+    padding: 10,
     marginBottom: 20,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 5,
-    elevation: 3,
   },
-  cardImage: {
+  image: {
     width: '100%',
     height: 160,
-  },
-  cardTextContainer: {
-    padding: 15,
+    borderRadius: 10,
+    resizeMode: 'cover',
   },
   cardTitle: {
-    fontSize: 18,
+    marginTop: 10,
     fontWeight: '600',
-    marginBottom: 6,
+    fontSize: 16,
+    textAlign: 'center',
   },
-  cardText: {
+  cardDescription: {
     fontSize: 14,
-    color: '#666',
-    marginBottom: 6,
+    textAlign: 'center',
+    color: '#555',
+    marginTop: 4,
   },
-  availability: {
+  description: {
     fontSize: 14,
-    color: '#264098',
-    fontWeight: '500',
-    marginBottom: 12,
-  },
-  button: {
-    backgroundColor: '#264098',
-    paddingVertical: 10,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  buttonText: {
-    color: '#FFF',
-    fontWeight: 'bold',
-  },
-  disabledButton: {
-    backgroundColor: '#999',
+    textAlign: 'center',
+    color: '#333',
   },
 });

@@ -1,240 +1,279 @@
-// ReservationScreen.js
-import React, { useEffect, useState } from 'react';
+// File: screens/ReservationScreen.js
+
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
-  TextInput,
-  StyleSheet,
   TouchableOpacity,
-  Image,
-  SafeAreaView,
-  ScrollView,
+  StyleSheet,
   Alert,
-  ActivityIndicator,
+  ScrollView,
+  TextInput,
+  SafeAreaView,
 } from 'react-native';
-import { useRoute, useNavigation } from '@react-navigation/native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const BASE_URL = 'https://5a8b-94-66-154-234.ngrok-free.app';
+import axios from 'axios';
+import DateTimePickerModal from 'react-native-modal-datetime-picker';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import { BASE_URL } from '@env';
 
-export default function ReservationScreen() {
-  const route = useRoute();
+const ReservationScreen = () => {
   const navigation = useNavigation();
-  const { name: restaurantName, image } = route.params;
+  const route = useRoute();
+  const { restaurantName } = route.params;
 
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
+  const [userData, setUserData] = useState({ name: '', phone: '', email: '' });
   const [people, setPeople] = useState('');
-  const [isAvailable, setIsAvailable] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [date, setDate] = useState(new Date());
+  const [time, setTime] = useState(new Date());
+
+  const [isDatePickerVisible, setDatePickerVisible] = useState(false);
+  const [isTimePickerVisible, setTimePickerVisible] = useState(false);
 
   useEffect(() => {
     const fetchUserData = async () => {
-      const token = await AsyncStorage.getItem('token');
       const userId = await AsyncStorage.getItem('userId');
+      const token = await AsyncStorage.getItem('token');
 
-      if (!token || !userId) {
-        navigation.navigate('Login');
-        return;
-      }
+      if (userId && token) {
+        try {
+          const res = await axios.get(`${BASE_URL}/api/users/${userId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
 
-      try {
-        const res = await fetch(`${BASE_URL}/api/users/${userId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const data = await res.json();
-        if (res.ok) {
-          setName(data.name);
-          setEmail(data.email);
-          setPhone(data.phone);
+          const { name, email, phone } = res.data;
+          setUserData({ name, email, phone });
+        } catch (error) {
+          console.error('[ReservationScreen] Error fetching user:', error);
+          Alert.alert('Error', 'Failed to load user data.');
         }
-      } catch (err) {
-        console.error('User fetch error:', err);
-      }
-    };
-
-    const checkAvailability = async () => {
-      try {
-        const cleanedRestaurant = restaurantName.trim();
-        const res = await fetch(`${BASE_URL}/api/reservations/availability/${encodeURIComponent(restaurantName)}`);
-        const data = await res.json();
-        if (res.ok) {
-          setIsAvailable(data.available);
-        } else {
-          Alert.alert('Error', 'Could not check availability');
-          setIsAvailable(null);
-        }
-      } catch (error) {
-        console.error('Availability error:', error);
-        setIsAvailable(null);
-      } finally {
-        setLoading(false);
       }
     };
 
     fetchUserData();
-    checkAvailability();
   }, []);
 
-  const handleSubmit = async () => {
-    if (!people) return Alert.alert('Missing Field', 'Please enter number of people.');
+  const handleReservation = async () => {
+    if (!people || !date || !time) {
+      return Alert.alert('Missing Fields', 'Please complete all required fields.');
+    }
 
-    const token = await AsyncStorage.getItem('token');
     const userId = await AsyncStorage.getItem('userId');
-    const today = new Date();
-    const date = today.toISOString().split('T')[0];
-    const time = `${today.getHours()}:${today.getMinutes()}`;
+    const token = await AsyncStorage.getItem('token');
 
     try {
-      const res = await fetch(`${BASE_URL}/api/reservations`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
+      await axios.post(
+        `${BASE_URL}/api/reservations`,
+        {
+          name: userData.name,
+          phone: userData.phone,
+          email: userData.email,
+          people,
+          date: date.toISOString().split('T')[0],
+          time: time.toTimeString().slice(0, 5),
+          restaurant: restaurantName,
+          userId,
         },
-        body: JSON.stringify({ date, time, people, restaurant: restaurantName.trim() }),
-      });
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-      const data = await res.json();
-
-      if (res.ok) {
-        Alert.alert('Success', 'Reservation confirmed!');
-        navigation.goBack();
-      } else {
-        Alert.alert('Error', data.message || 'Reservation failed');
-      }
-    } catch (error) {
-      console.error('Submit error:', error);
-      Alert.alert('Error', 'Failed to submit reservation');
+      Alert.alert('Success', 'Reservation created!');
+      navigation.goBack();
+    } catch (err) {
+      console.error('[ReservationScreen] Error submitting reservation:', err);
+      Alert.alert('Error', 'Reservation failed. Please try again.');
     }
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView>
-        <Image source={image} style={styles.image} />
-
+    <SafeAreaView style={styles.safeArea}>
+      <ScrollView contentContainerStyle={styles.container}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={20} color="#264098" />
-          <Text style={styles.backText}>Back to Restaurants</Text>
+          <Ionicons name="arrow-back" size={26} color="#264098" />
         </TouchableOpacity>
 
-        <View style={styles.inner}>
-          <Text style={styles.heading}>Reserve at {restaurantName.trim()}</Text>
+        <Text style={styles.title}>Reserve at {restaurantName}</Text>
 
-          {loading ? (
-            <ActivityIndicator size="large" color="#264098" />
-          ) : isAvailable === false ? (
-            <Text style={styles.unavailable}>No availability left.</Text>
-          ) : (
-            <>
-              <Text style={styles.label}>Name</Text>
-              <View style={styles.lockedInputContainer}>
-                <TextInput value={name} editable={false} style={styles.inputDisabled} />
-                <Ionicons name="lock-closed-outline" size={18} color="#888" />
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Your Info</Text>
+          {['name', 'phone', 'email'].map((field) => (
+            <View style={styles.inputGroup} key={field}>
+              <Text style={styles.label}>{field.charAt(0).toUpperCase() + field.slice(1)}</Text>
+              <View style={styles.lockedInput}>
+                <Text style={styles.lockedText}>{userData[field]}</Text>
+                <Ionicons name="lock-closed-outline" size={16} color="#aaa" />
               </View>
-
-              <Text style={styles.label}>Email</Text>
-              <View style={styles.lockedInputContainer}>
-                <TextInput value={email} editable={false} style={styles.inputDisabled} />
-                <Ionicons name="lock-closed-outline" size={18} color="#888" />
-              </View>
-
-              <Text style={styles.label}>Phone</Text>
-              <View style={styles.lockedInputContainer}>
-                <TextInput value={phone} editable={false} style={styles.inputDisabled} />
-                <Ionicons name="lock-closed-outline" size={18} color="#888" />
-              </View>
-
-              <Text style={styles.label}>Number of People</Text>
-              <TextInput
-                placeholder="e.g. 2"
-                value={people}
-                onChangeText={setPeople}
-                style={styles.input}
-                keyboardType="numeric"
-              />
-
-              <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-                <Text style={styles.buttonText}>Confirm Reservation</Text>
-              </TouchableOpacity>
-            </>
-          )}
+            </View>
+          ))}
         </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Reservation Details</Text>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Number of People</Text>
+            <TextInput
+              style={styles.input}
+              value={people}
+              onChangeText={setPeople}
+              keyboardType="numeric"
+              placeholder="e.g. 2"
+              placeholderTextColor="#999"
+            />
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Date</Text>
+            <TouchableOpacity
+              onPress={() => setDatePickerVisible(true)}
+              style={styles.pickerButton}
+            >
+              <Ionicons name="calendar-outline" size={18} color="#264098" />
+              <Text style={styles.pickerText}>
+                {date.toISOString().split('T')[0]}
+              </Text>
+            </TouchableOpacity>
+            <DateTimePickerModal
+              isVisible={isDatePickerVisible}
+              mode="date"
+              onConfirm={(selectedDate) => {
+                setDatePickerVisible(false);
+                if (selectedDate) setDate(selectedDate);
+              }}
+              onCancel={() => setDatePickerVisible(false)}
+            />
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Time</Text>
+            <TouchableOpacity
+              onPress={() => setTimePickerVisible(true)}
+              style={styles.pickerButton}
+            >
+              <Ionicons name="time-outline" size={18} color="#264098" />
+              <Text style={styles.pickerText}>
+                {time.toTimeString().slice(0, 5)}
+              </Text>
+            </TouchableOpacity>
+            <DateTimePickerModal
+              isVisible={isTimePickerVisible}
+              mode="time"
+              is24Hour={true}
+              onConfirm={(selectedTime) => {
+                setTimePickerVisible(false);
+                if (selectedTime) setTime(selectedTime);
+              }}
+              onCancel={() => setTimePickerVisible(false)}
+            />
+          </View>
+        </View>
+
+        <TouchableOpacity style={styles.button} onPress={handleReservation}>
+          <Text style={styles.buttonText}>Submit Reservation</Text>
+        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FAFAFA' },
-  image: { width: '100%', height: 160 },
-  inner: { padding: 20 },
-  heading: {
-    fontSize: 18,
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  container: {
+    paddingTop: 20,
+    paddingHorizontal: 16,
+    paddingBottom: 50,
+  },
+  backBtn: {
+    marginBottom: 20,
+  },
+  title: {
+    fontSize: 22,
     fontWeight: 'bold',
     color: '#264098',
     marginBottom: 20,
+    textAlign: 'center',
+  },
+  section: {
+    marginBottom: 30,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#264098',
+    marginBottom: 12,
+  },
+  inputGroup: {
+    marginBottom: 16,
   },
   label: {
-    fontSize: 13,
-    color: '#444',
-    marginBottom: 4,
-    marginTop: 10,
-  },
-  lockedInputContainer: {
-    backgroundColor: '#EEE',
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 8,
-    marginBottom: 10,
-    justifyContent: 'space-between',
-  },
-  inputDisabled: {
-    color: '#444',
-    fontSize: 16,
-    flex: 1,
+    fontSize: 14,
+    color: '#333',
+    marginBottom: 6,
   },
   input: {
-    backgroundColor: '#FFF',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#DDD',
-    padding: 10,
     fontSize: 16,
-    marginBottom: 20,
+    paddingVertical: 12,
+    paddingHorizontal: 10,
+    color: '#333',
+    backgroundColor: '#f4f4f4',
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 14,
+  },
+  lockedInput: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 14,
+    padding: 12,
+    backgroundColor: '#f4f4f4',
+  },
+  lockedText: {
+    fontSize: 16,
+    color: '#666',
+  },
+  pickerButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f4f4f4',
+    borderRadius: 14,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#ccc',
+  },
+  pickerText: {
+    fontSize: 16,
+    color: '#333',
+    marginLeft: 10,
   },
   button: {
     backgroundColor: '#264098',
-    padding: 14,
-    borderRadius: 10,
+    paddingVertical: 16,
+    borderRadius: 18,
     alignItems: 'center',
-    marginTop: 10,
+    marginTop: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 3,
   },
   buttonText: {
-    color: '#FFF',
-    fontWeight: 'bold',
-  },
-  backBtn: {
-    marginTop: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-  },
-  backText: {
-    color: '#264098',
-    fontWeight: '600',
-    marginLeft: 6,
-  },
-  unavailable: {
-    color: 'red',
+    color: '#fff',
+    fontWeight: '700',
     fontSize: 16,
-    fontWeight: '500',
-    textAlign: 'center',
-    marginVertical: 20,
   },
 });
+
+export default ReservationScreen;

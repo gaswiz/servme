@@ -1,125 +1,81 @@
-import React, { useState, useRef, useEffect } from 'react';
+// screens/RestaurantsScreen.js
+
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
-  Image,
   TouchableOpacity,
+  Image,
   SafeAreaView,
-  Animated,
+  ActivityIndicator,
+  ScrollView,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
+import { BASE_URL } from '@env';
 
-// Local images
-const restaurantImages = [
-  require('../assets/images/Restaurants/restaurant1.jpg'),
-  require('../assets/images/Restaurants/restaurant2.jpg'),
-  require('../assets/images/Restaurants/restaurant3.jpg'),
-  require('../assets/images/Restaurants/restaurant4.jpg'),
-  require('../assets/images/Restaurants/restaurant5.jpg'),
-];
-
-const categories = ['Pizza', 'Sushi', 'Fast Food'];
-
-const restaurants = {
-  Pizza: [
-    { name: 'Pizza Palace', description: 'Wood-fired pizzas with fresh ingredients.', image: restaurantImages[0] },
-    { name: 'Mamma Mia', description: 'Authentic Napoli-style pizzas.', image: restaurantImages[1] },
-    { name: 'Slice It', description: 'Fast, hot, and cheesy slices.', image: restaurantImages[2] },
-  ],
-  Sushi: [
-    { name: 'Sakura Sushi', description: 'Fresh sushi crafted to perfection.', image: restaurantImages[3] },
-    { name: 'Tokyo Rolls', description: 'Classic Japanese sushi rolls.', image: restaurantImages[4] },
-    { name: 'Nori House', description: 'Tasty bites wrapped in nori.', image: restaurantImages[0] },
-  ],
-  'Fast Food': [
-    { name: 'Burger Bomb', description: 'Explosive flavors in every burger.', image: restaurantImages[1] },
-    { name: 'Fries Hub', description: 'Where fries meet gourmet.', image: restaurantImages[2] },
-    { name: 'Snack Rush', description: 'Speedy and satisfying snacks.', image: restaurantImages[3] },
-  ],
+const localImages = {
+  Pizza: require('../assets/images/Pizza/pizza2.jpg'),
+  Burger: require('../assets/images/Fast/fast2.jpg'),
+  Sushi: require('../assets/images/Sushi/sushi2.jpg'),
 };
 
+
 export default function RestaurantsScreen() {
+  const [restaurants, setRestaurants] = useState([]);
+  const [loading, setLoading] = useState(true);
   const navigation = useNavigation();
-  const [selectedCategory, setSelectedCategory] = useState('Pizza');
-  const scrollX = useRef(new Animated.Value(0)).current;
-  const scrollRef = useRef();
 
   useEffect(() => {
-    let offset = 0;
-    const interval = setInterval(() => {
-      offset = (offset + 250) % (restaurantImages.length * 250);
-      scrollRef.current?.scrollTo({ x: offset, animated: true });
-    }, 3000);
-    return () => clearInterval(interval);
+    const fetchRestaurants = async () => {
+      try {
+        const response = await axios.get(`${BASE_URL}/api/restaurants`);
+        setRestaurants(response.data);
+      } catch (error) {
+        console.error('[RestaurantsScreen] Error fetching restaurants:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRestaurants();
   }, []);
 
+  const CategoryCard = ({ label }) => (
+    <TouchableOpacity
+      style={styles.card}
+      onPress={() => navigation.navigate(label)}
+    >
+      <Image source={localImages[label]} style={styles.image} />
+      <Text style={styles.cardTitle}>{label}</Text>
+    </TouchableOpacity>
+  );
+
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <Text style={styles.heading}>Recommended for You</Text>
+    <SafeAreaView style={styles.safeArea}>      
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+          <Ionicons name="arrow-back" size={28} color="#264098" />
+        </TouchableOpacity>
 
-        {/* Animated Carousel */}
-        <ScrollView
-          horizontal
-          ref={scrollRef}
-          showsHorizontalScrollIndicator={false}
-          style={styles.carousel}
-          scrollEventThrottle={16}
-          onScroll={Animated.event(
-            [{ nativeEvent: { contentOffset: { x: scrollX } } }],
-            { useNativeDriver: false }
-          )}
-        >
-          {restaurantImages.map((img, idx) => (
-            <Image key={idx} source={img} style={styles.heroImage} />
-          ))}
-        </ScrollView>
+        <Text style={styles.header}>Explore Categories</Text>
 
-        {/* Categories */}
-        <View style={styles.categories}>
-          {categories.map((cat) => (
-            <TouchableOpacity
-              key={cat}
-              style={[
-                styles.categoryButton,
-                selectedCategory === cat && styles.categoryButtonActive,
-              ]}
-              onPress={() => setSelectedCategory(cat)}
-            >
-              <Text
-                style={[
-                  styles.categoryText,
-                  selectedCategory === cat && styles.categoryTextActive,
-                ]}
-              >
-                {cat}
-              </Text>
-            </TouchableOpacity>
-          ))}
+        <View style={styles.row}>
+          <CategoryCard label="Pizza" />
+          <CategoryCard label="Burger" />
+          <CategoryCard label="Sushi" />
         </View>
 
-        {/* Restaurant Cards */}
-        <View style={styles.restaurantList}>
-          {restaurants[selectedCategory].map((item, index) => (
-            <View key={index} style={styles.card}>
-              <Image source={item.image} style={styles.cardImage} />
-              <Text style={styles.cardTitle}>{item.name}</Text>
-              <Text style={styles.cardText}>{item.description}</Text>
-              <TouchableOpacity
-                style={styles.reserveButton}
-                onPress={() =>
-                  navigation.navigate('Reservation', {
-                    name: item.name,
-                    image: item.image,
-                  })
-                }
-              >
-                <Text style={styles.reserveText}>Reserve</Text>
-              </TouchableOpacity>
-            </View>
-          ))}
+        <Text style={styles.description}>
+          Choose your favorite cuisine and explore available restaurants for online reservations.
+        </Text>
+
+        <View style={styles.demoBox}>
+          <Text style={styles.demoText}>
+            This screen demonstrates the categories of restaurants users can explore and reserve from.
+          </Text>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -127,89 +83,66 @@ export default function RestaurantsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
-    backgroundColor: '#FAFAFA',
+    backgroundColor: '#fff',
   },
-  scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 40,
+  scrollContainer: {
+    paddingTop: 60,
+    paddingHorizontal: 16,
+    paddingBottom: 30,
   },
-  heading: {
-    fontSize: 22,
+  backBtn: {
+    position: 'absolute',
+    top: 20,
+    left: 16,
+    zIndex: 10,
+  },
+  header: {
+    fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 15,
-    color: '#264098',
-  },
-  carousel: {
+    textAlign: 'center',
     marginBottom: 20,
   },
-  heroImage: {
-    width: 250,
-    height: 150,
-    borderRadius: 16,
-    marginRight: 15,
-  },
-  categories: {
+  row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 20,
   },
-  categoryButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    borderRadius: 20,
-    backgroundColor: '#E0E0E0',
-  },
-  categoryButtonActive: {
-    backgroundColor: '#264098',
-  },
-  categoryText: {
-    color: '#444',
-    fontSize: 14,
-  },
-  categoryTextActive: {
-    color: '#FFF',
-    fontWeight: 'bold',
-  },
-  restaurantList: {
-    marginBottom: 20,
-  },
   card: {
-    backgroundColor: '#FFF',
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 5,
-    elevation: 3,
+    width: '30%',
+    backgroundColor: '#f0f0f0',
+    borderRadius: 15,
+    alignItems: 'center',
+    padding: 10,
   },
-  cardImage: {
+  image: {
     width: '100%',
-    height: 160,
-    borderRadius: 12,
-    marginBottom: 15,
+    height: 90,
+    borderRadius: 10,
+    resizeMode: 'cover',
   },
   cardTitle: {
-    fontSize: 18,
+    marginTop: 10,
     fontWeight: '600',
-    marginBottom: 6,
-  },
-  cardText: {
     fontSize: 14,
-    color: '#666',
-    marginBottom: 10,
+    textAlign: 'center',
   },
-  reserveButton: {
-    backgroundColor: '#264098',
-    paddingVertical: 10,
-    borderRadius: 8,
-    alignItems: 'center',
+  description: {
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 20,
+    color: '#333',
   },
-  reserveText: {
-    color: '#FFF',
-    fontWeight: 'bold',
+  demoBox: {
+    backgroundColor: '#FFF4CC',
+    padding: 16,
+    borderRadius: 15,
+    marginHorizontal: 10,
+  },
+  demoText: {
+    fontSize: 14,
+    color: '#555',
+    textAlign: 'center',
   },
 });
