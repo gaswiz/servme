@@ -156,7 +156,3 @@ npx expo start
 * **Execution within Files**: There is no direct support for executing terminal commands inside a `txt` or `md` file. However, this markdown format can guide a user on the steps to run commands with clear instructions and expected outputs.
 
 ---
-
-This way, anyone reading the **`installation_guide.md`** can follow the steps to install, configure, and run the app with clear instructions. They will also know what outputs to expect, and how to troubleshoot any potential issues.
-
-Let me know if you need help with anything else!
