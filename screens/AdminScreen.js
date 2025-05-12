@@ -1,4 +1,14 @@
-// AdminScreen.js
+// ========================================================================================
+// File: screens/AdminScreen.js
+// Project: ServMe - Full-Stack Restaurant Reservation App
+// Author: Konstantinos Panagiotaropoulos
+// Course Code: CN6035 - Mobile & Distributed Systems
+// Description:
+//    Displays the Admin Panel interface where admin users can view a list of all
+//    registered users and all current reservations. Data is fetched using the
+//    authenticated token stored in AsyncStorage.
+// ========================================================================================
+
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';

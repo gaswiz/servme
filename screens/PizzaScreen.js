@@ -1,3 +1,13 @@
+// ========================================================================================
+// File: screens/PizzaScreen.js
+// Project: ServMe - Full-Stack Restaurant Reservation App
+// Author: Konstantinos Panagiotaropoulos
+// Course Code: CN6035 - Mobile & Distributed Systems
+// Description:
+//    Displays a scrollable list of pizza restaurants with images and descriptions.
+//    Allows navigation to the Reservation screen with selected restaurant details.
+// ========================================================================================
+
 import React from 'react';
 import {
   View,
@@ -31,7 +41,6 @@ const pizzaRestaurants = [
     description: 'Traditional Italian pizza with a crispy crust.',
   },
 ];
-
 
 export default function PizzaScreen() {
   const navigation = useNavigation();

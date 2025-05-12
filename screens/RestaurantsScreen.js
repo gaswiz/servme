@@ -1,4 +1,13 @@
-// screens/RestaurantsScreen.js
+// ========================================================================================
+// File: screens/RestaurantsScreen.js
+// Project: ServMe - Full-Stack Restaurant Reservation App
+// Author: Konstantinos Panagiotaropoulos
+// Course Code: CN6035 - Mobile & Distributed Systems
+// Description:
+//    Displays static restaurant category cards (Pizza, Burger, Sushi).
+//    On selection, navigates to corresponding screens.
+//    Optionally displays a fetched restaurant list (not rendered currently).
+// ========================================================================================
 
 import React, { useEffect, useState } from 'react';
 import {
@@ -21,7 +30,6 @@ const localImages = {
   Burger: require('../assets/images/Fast/fast2.jpg'),
   Sushi: require('../assets/images/Sushi/sushi2.jpg'),
 };
-
 
 export default function RestaurantsScreen() {
   const [restaurants, setRestaurants] = useState([]);

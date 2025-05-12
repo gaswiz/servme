@@ -1,4 +1,13 @@
+// ========================================================================================
 // File: screens/HomeScreen.js
+// Project: ServMe - Full-Stack Restaurant Reservation App
+// Author: Konstantinos Panagiotaropoulos
+// Course Code: CN6035 - Mobile & Distributed Systems
+// Description:
+//    Displays a personalized welcome message based on login state. Enables users to
+//    browse restaurants by category, search, and navigate to their account and reservations.
+//    Data is pulled from the backend using token-authenticated requests stored in AsyncStorage.
+// ========================================================================================
 
 import React, { useEffect, useState } from 'react';
 import {

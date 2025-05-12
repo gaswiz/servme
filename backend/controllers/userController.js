@@ -1,4 +1,18 @@
-// userController.js
+// ========================================================================================
+// File: controllers/userController.js
+// Project: ServMe - Full-Stack Restaurant Reservation App
+// Author: Konstantinos Panagiotaropoulos
+// Course Code: CN6035 - Mobile & Distributed Systems
+// Description:
+//    This controller provides user management functionality for the ServMe app.
+//    It includes functions to fetch all users and retrieve a specific user by ID.
+//
+// Usage:
+//    Used by userRoutes.js for endpoints:
+//    - GET /api/users
+//    - GET /api/users/:id
+// ========================================================================================
+
 import User from '../models/User.js';
 
 export const getUserById = async (req, res) => {

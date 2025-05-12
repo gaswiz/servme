@@ -1,4 +1,13 @@
-// screens/LoginScreen.js
+// ========================================================================================
+// File: screens/LoginScreen.js
+// Project: ServMe - Full-Stack Restaurant Reservation App
+// Author: Konstantinos Panagiotaropoulos
+// Course Code: CN6035 - Mobile & Distributed Systems
+// Description:
+//    Provides a secure login interface for users and admins. Validates credentials
+//    against the backend, stores the authentication token, and navigates users to
+//    the appropriate home screen based on role.
+// ========================================================================================
 
 import React, { useState } from 'react';
 import {

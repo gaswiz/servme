@@ -1,7 +1,23 @@
-// controllers/restaurantController.js
-import db from '../config/db.js';
-import Restaurant from '../models/Restaurant.js'; // Sequelize model
+// ========================================================================================
+// File: controllers/restaurantController.js
+// Project: ServMe - Full-Stack Restaurant Reservation App
+// Author: Konstantinos Panagiotaropoulos
+// Course Code: CN6035 - Mobile & Distributed Systems
+// Description:
+//    This controller provides full CRUD functionality for managing restaurants.
+//    It uses both raw SQL queries (via db.execute) and Sequelize (for fetching all).
+//
+// Usage:
+//    Used by restaurantRoutes.js for endpoints:
+//    - POST /api/restaurants
+//    - GET /api/restaurants
+//    - GET /api/restaurants/:id
+//    - PUT /api/restaurants/:id
+//    - DELETE /api/restaurants/:id
+// ========================================================================================
 
+import db from '../config/db.js';
+import Restaurant from '../models/Restaurant.js';
 
 // CREATE restaurant
 export const createRestaurant = async (req, res) => {
@@ -19,8 +35,7 @@ export const createRestaurant = async (req, res) => {
   }
 };
 
-
-// GET all restaurants (with Sequelize)
+// GET all restaurants (Sequelize)
 export const getAllRestaurants = async (req, res) => {
   console.log('[restaurantController] getAllRestaurants called');
   try {
@@ -33,9 +48,7 @@ export const getAllRestaurants = async (req, res) => {
   }
 };
 
-
-
-// GET restaurant by ID
+// GET restaurant by ID (raw SQL)
 export const getRestaurantById = async (req, res) => {
   const { id } = req.params;
 

@@ -1,3 +1,12 @@
+// ========================================================================================
+// File: tsconfig.json
+// Project: ServMe - Full-Stack Restaurant Reservation App
+// Author: Konstantinos Panagiotaropoulos
+// Course Code: CN6035 - Mobile & Distributed Systems
+// Description:
+//    TypeScript configuration file for the ServMe project. This file configures the compiler
+//    options for TypeScript and extends from the default Expo base config.
+// ========================================================================================
 {
   "compilerOptions": {},
   "extends": "expo/tsconfig.base"

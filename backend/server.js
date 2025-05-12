@@ -1,4 +1,19 @@
-// server.js
+// ========================================================================================
+// File: server.js
+// Project: ServMe - Full-Stack Restaurant Reservation App
+// Author: Konstantinos Panagiotaropoulos
+// Course Code: CN6035 - Mobile & Distributed Systems
+// Description:
+//    Entry point for the Express backend server. Initializes middleware, connects
+//    to the MariaDB database using Sequelize, and mounts all application routes.
+//
+// Responsibilities:
+//    - Loads environment config with dotenv
+//    - Applies global middleware (CORS, morgan, express.json)
+//    - Registers route handlers for auth, users, reservations, and restaurants
+//    - Initializes database connection and starts the server on configured port
+// ========================================================================================
+
 import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
@@ -17,7 +32,7 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: '*', // Change to 'http://localhost:8081' if you want to limit
+  origin: '*', // Change to 'http://localhost:8081' to limit access during dev
 }));
 app.use(express.json());
 app.use(morgan('dev'));

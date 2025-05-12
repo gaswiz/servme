@@ -1,4 +1,14 @@
-// App.js
+// ========================================================================================
+// File: App.js
+// Project: ServMe - Full-Stack Restaurant Reservation App
+// Author: Konstantinos Panagiotaropoulos
+// Course Code: CN6035 - Mobile & Distributed Systems
+// Description:
+//    The main entry point for the React Native application.
+//    This file sets up the main navigation structure, including both tab navigation (for main features)
+//    and stack navigation (for screen transitions). It checks user authentication status and routes
+//    to the appropriate screens based on the role (admin or user).
+// ========================================================================================
 
 import { registerRootComponent } from 'expo';
 import React, { useEffect, useState } from 'react';
@@ -62,15 +72,8 @@ function AppNavigator() {
 
   useEffect(() => {
     const initialize = async () => {
-      // Commented out to retain session on web
-      // if (Platform.OS === 'web') {
-      //   await AsyncStorage.clear();
-      // }
       const token = await AsyncStorage.getItem('token');
       const role = await AsyncStorage.getItem('userRole');
-
-      console.log('[AppNavigator] Token:', token);
-      console.log('[AppNavigator] Role:', role);
 
       if (token && role === 'admin') {
         setInitialRoute('Admin');

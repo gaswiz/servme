@@ -1,7 +1,12 @@
-/**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
- */
+// ========================================================================================
+// File: frontend/constants/Colors.js
+// Project: ServMe - Full-Stack Restaurant Reservation App
+// Author: Konstantinos Panagiotaropoulos
+// Course Code: CN6035 - Mobile & Distributed Systems
+// Description:
+//    Defines color palette constants for both light and dark themes in the frontend.
+//    This configuration supports consistent theming across the app UI.
+// ========================================================================================
 
 const tintColorLight = '#0a7ea4';
 const tintColorDark = '#fff';

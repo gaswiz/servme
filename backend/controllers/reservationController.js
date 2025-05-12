@@ -1,4 +1,22 @@
-// reservationController.js
+// ========================================================================================
+// File: controllers/reservationController.js
+// Project: ServMe - Full-Stack Restaurant Reservation App
+// Author: Konstantinos Panagiotaropoulos
+// Course Code: CN6035 - Mobile & Distributed Systems
+// Description: 
+//    This controller manages reservation logic, including creation, deletion,
+//    fetching all or user-specific reservations, and checking restaurant availability.
+//    It enforces a reservation limit of 10 per restaurant.
+//
+// Usage:
+//    Used by reservationRoutes.js to handle endpoints:
+//    - POST /api/reservations
+//    - GET /api/reservations
+//    - GET /api/reservations/:userId
+//    - DELETE /api/reservations/:id
+//    - GET /api/reservations/check
+// ========================================================================================
+
 import Reservation from '../models/Reservation.js';
 import db from '../config/db.js';
 
@@ -61,8 +79,6 @@ export const deleteReservation = async (req, res) => {
     res.status(500).json({ message: 'Error deleting reservation', error: err });
   }
 };
-
-
 
 export const getUserReservations = async (req, res) => {
   const { userId } = req.params;

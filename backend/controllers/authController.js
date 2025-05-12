@@ -1,4 +1,17 @@
-// controllers/authController.js
+// ========================================================================================
+// File: controllers/authController.js
+// Project: ServMe - Full-Stack Restaurant Reservation App
+// Author: Konstantinos Panagiotaropoulos
+// Course Code: CN6035 - Mobile & Distributed Systems
+// Description: 
+//    This controller handles user registration and login using bcrypt for password
+//    hashing and JWT for token-based authentication. It provides endpoints for
+//    securely signing up and logging in users.
+//
+// Usage:
+//    Used by authRoutes.js for handling /api/auth/register and /api/auth/login
+// ========================================================================================
+
 import User from '../models/User.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
@@ -49,7 +62,6 @@ export const loginUser = async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    // TEMP: log all emails
     const allUsers = await User.findAll();
     console.log('[authController] All users:', allUsers.map(u => u.email));
 

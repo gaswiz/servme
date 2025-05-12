@@ -1,4 +1,13 @@
+// ========================================================================================
 // File: screens/ReservationScreen.js
+// Project: ServMe - Full-Stack Restaurant Reservation App
+// Author: Konstantinos Panagiotaropoulos
+// Course Code: CN6035 - Mobile & Distributed Systems
+// Description:
+//    Allows users to make a reservation by selecting date, time, and number of people.
+//    Automatically fetches and locks user data fields, and submits the reservation
+//    to the backend API. Includes calendar and time pickers.
+// ========================================================================================
 
 import React, { useState, useEffect } from 'react';
 import {
@@ -13,7 +22,6 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
 import axios from 'axios';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -28,7 +36,6 @@ const ReservationScreen = () => {
   const [people, setPeople] = useState('');
   const [date, setDate] = useState(new Date());
   const [time, setTime] = useState(new Date());
-
   const [isDatePickerVisible, setDatePickerVisible] = useState(false);
   const [isTimePickerVisible, setTimePickerVisible] = useState(false);
 
@@ -42,7 +49,6 @@ const ReservationScreen = () => {
           const res = await axios.get(`${BASE_URL}/api/users/${userId}`, {
             headers: { Authorization: `Bearer ${token}` },
           });
-
           const { name, email, phone } = res.data;
           setUserData({ name, email, phone });
         } catch (error) {
@@ -135,9 +141,7 @@ const ReservationScreen = () => {
               style={styles.pickerButton}
             >
               <Ionicons name="calendar-outline" size={18} color="#264098" />
-              <Text style={styles.pickerText}>
-                {date.toISOString().split('T')[0]}
-              </Text>
+              <Text style={styles.pickerText}>{date.toISOString().split('T')[0]}</Text>
             </TouchableOpacity>
             <DateTimePickerModal
               isVisible={isDatePickerVisible}
@@ -157,9 +161,7 @@ const ReservationScreen = () => {
               style={styles.pickerButton}
             >
               <Ionicons name="time-outline" size={18} color="#264098" />
-              <Text style={styles.pickerText}>
-                {time.toTimeString().slice(0, 5)}
-              </Text>
+              <Text style={styles.pickerText}>{time.toTimeString().slice(0, 5)}</Text>
             </TouchableOpacity>
             <DateTimePickerModal
               isVisible={isTimePickerVisible}

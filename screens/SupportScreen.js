@@ -1,4 +1,12 @@
-// screens/SupportScreen.js
+// ========================================================================================
+// File: screens/SupportScreen.js
+// Project: ServMe - Full-Stack Restaurant Reservation App
+// Author: Konstantinos Panagiotaropoulos
+// Course Code: CN6035 - Mobile & Distributed Systems
+// Description:
+//    Displays a basic support/FAQ interface with hardcoded questions.
+//    Includes a dev-purpose support alert and back navigation.
+// ========================================================================================
 
 import React from 'react';
 import {

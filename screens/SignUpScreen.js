@@ -1,4 +1,13 @@
-// screens/SignUpScreen.js
+// ========================================================================================
+// File: screens/SignUpScreen.js
+// Project: ServMe - Full-Stack Restaurant Reservation App
+// Author: Konstantinos Panagiotaropoulos
+// Course Code: CN6035 - Mobile & Distributed Systems
+// Description:
+//    Provides the registration screen allowing users to sign up.
+//    Handles form validation, submission to the backend API, and redirects
+//    to the appropriate user/admin home screen after successful signup.
+// ========================================================================================
 
 import React, { useState } from 'react';
 import {

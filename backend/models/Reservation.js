@@ -1,4 +1,18 @@
-// models/Reservation.js
+// ========================================================================================
+// File: models/Reservation.js
+// Project: ServMe - Full-Stack Restaurant Reservation App
+// Author: Konstantinos Panagiotaropoulos
+// Course Code: CN6035 - Mobile & Distributed Systems
+// Description:
+//    Defines the Reservation model using Sequelize. A reservation is linked to a user,
+//    and includes metadata such as date, time, restaurant name, and number of people.
+//
+// Notes:
+//    - Table name: reservations
+//    - Timestamps are disabled.
+//    - Associates with User: User hasMany Reservations / Reservation belongsTo User.
+// ========================================================================================
+
 import { DataTypes } from 'sequelize';
 import sequelize from '../config/db.js';
 import User from './User.js';
@@ -31,10 +45,9 @@ const Reservation = sequelize.define('Reservation', {
   },
 }, {
   tableName: 'reservations',
-  timestamps: false, // ✅ Prevent Sequelize from expecting createdAt/updatedAt
+  timestamps: false,
 });
 
-// Associations
 User.hasMany(Reservation, { foreignKey: 'userId', onDelete: 'CASCADE' });
 Reservation.belongsTo(User, { foreignKey: 'userId' });
 

@@ -1,3 +1,13 @@
+// ========================================================================================
+// File: screens/SushiScreen.js
+// Project: ServMe - Full-Stack Restaurant Reservation App
+// Author: Konstantinos Panagiotaropoulos
+// Course Code: CN6035 - Mobile & Distributed Systems
+// Description:
+//    Displays a list of sushi restaurants with image previews and descriptions.
+//    Each card links to the Reservation screen with the restaurant pre-selected.
+// ========================================================================================
+
 import React from 'react';
 import {
   View,

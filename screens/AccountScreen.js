@@ -1,4 +1,13 @@
+// ========================================================================================
 // File: screens/AccountScreen.js
+// Project: ServMe - Full-Stack Restaurant Reservation App
+// Author: Konstantinos Panagiotaropoulos
+// Course Code: CN6035 - Mobile & Distributed Systems
+// Description:
+//    Displays the logged-in user's profile, contact information, and reservation history.
+//    Allows users to cancel reservations and log out. Fetches user data from the backend
+//    based on the stored token and userId in AsyncStorage.
+// ========================================================================================
 
 import React, { useEffect, useState } from 'react';
 import {

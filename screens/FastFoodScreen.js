@@ -1,3 +1,14 @@
+// ========================================================================================
+// File: screens/FastFoodScreen.js
+// Project: ServMe - Full-Stack Restaurant Reservation App
+// Author: Konstantinos Panagiotaropoulos
+// Course Code: CN6035 - Mobile & Distributed Systems
+// Description:
+//    Displays a list of fast food restaurants. Users can tap a restaurant to proceed
+//    to the Reservation screen with prefilled restaurant details. Images are sourced
+//    locally and the layout is optimized for mobile devices.
+// ========================================================================================
+
 import React from 'react';
 import {
   View,
