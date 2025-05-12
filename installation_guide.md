@@ -1,10 +1,3 @@
-Yes, you can use **Markdown files** with embedded code blocks to demonstrate commands and their expected output. However, for executing code directly from the terminal within the file, there's no native file format that directly supports running terminal commands and displaying outputs. That said, **Markdown** with **syntax highlighting** is a great option for providing the **command execution instructions** along with **expected outputs**.
-
-Here’s how you can structure it in a Markdown format with syntax highlighting for commands and outputs:
-
-### Example with Markdown for "installation\_guide.md":
-
-````markdown
 # ServMe - Installation Guide
 
 This guide will walk you through the process of setting up and running the ServMe application on your local machine. ServMe is a full-stack restaurant reservation app built with React Native (Expo), Node.js, and MariaDB.
