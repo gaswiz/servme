@@ -85,6 +85,3 @@ servme/
 For issues, suggestions, or contributions:
 - **GitHub**: [ServMe Repo](https://github.com/gaswiz/servme)
 - **Author**: **Konstantinos Panagiotaropoulos**, Final Year BSc Computer Science — CN6035 Project
-```
-
-
