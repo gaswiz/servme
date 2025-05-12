@@ -1,130 +1,206 @@
-# ServMe 🍽️
+# ServMe
 
-ServMe is a full-stack mobile application for restaurant reservations built using **React Native (Expo)** for the frontend and **Node.js + MariaDB** for the backend. It allows users to register, log in, browse restaurants by category (Pizza, Sushi, Fast Food), make reservations, and view their account details and booking history.
+ServMe is a full-stack restaurant reservation system built with a mobile-first approach using **React Native (Expo)** for the frontend and **Node.js with MariaDB** for the backend. The application allows users to register, log in, explore restaurant categories, book reservations based on real-time availability, and view their booking history. Admin users have access to user and reservation management tools.
 
----
-
-## 🔧 Features
-
-### ✅ Completed
-- Secure login/signup with JWT and live input validation
-- Admin & User roles with role-based routing
-- Persistent login via AsyncStorage
-- Frontend screens:
-  - Home, Restaurants, Support
-  - Login, SignUp, Account, Admin
-  - Pizza, Sushi, Fast Food
-  - Reservation (with DB-based availability logic)
-- Live reservation availability per restaurant (max 10)
-- Availability logic synced across categories and restaurants
-- Backend API:
-  - `/api/auth`, `/api/users`
-  - `/api/restaurants`, `/api/reservations`
-- Database: MariaDB with Sequelize ORM
-- Token storage, protected routes, and redirection logic implemented
+This system is built primarily for mobile devices (iOS/Android) and optimized for use through the **Expo Go** app. While it runs on web (via `expo start --web`), browser environments may experience cache/session limitations and are not the primary target.
 
 ---
 
-## 🔨 Setup Instructions
+## Features
 
-### 1. Clone the repo
+### User Functionality
+- JWT-based secure authentication (login/register)
+- Persistent session storage with AsyncStorage
+- Role-based routing for users and admins
+- Explore restaurants by category: Pizza, Sushi, Fast Food
+- View restaurant details and make reservations
+- Account screen with user info and reservation history
 
-```bash
-git clone https://github.com/gaswiz/servme.git
-cd servme
-```
+### Admin Functionality
+- Admin dashboard to view all users
+- Access to full reservation listing
 
-### 2. Backend setup
-
-```bash
-cd backend
-npm install
-cp .env.example .env
-# edit your .env file with your database credentials
-npm run dev
-```
-
-### 3. Frontend setup
-
-```bash
-cd ..
-npm install
-npx expo start
-```
-
-> ℹ️ If using a real device, replace `localhost` in `BASE_URL` inside all screens (e.g. `192.168.1.X`)
+### Backend API
+- `/api/auth` – Login and registration
+- `/api/users` – User info retrieval
+- `/api/restaurants` – Restaurant CRUD
+- `/api/reservations` – Make and manage reservations
 
 ---
 
-## 🧪 Testing Logins
-
-| Email              | Password | Role   |
-|-------------------|----------|--------|
-| admin@gmail.com    | admin    | admin  |
-| user1@gmail.com    | user1    | user   |
-| user2@gmail.com    | user2    | user   |
-
-> Passwords are hashed with bcrypt in the DB
-
----
-
-## 📌 Next Tasks
-
-1. **Reservation Management Enhancements**  
-   - Add ability to cancel reservations  
-   - Admin view: show list of reservations per restaurant
-
-2. **Email Confirmations (optional)**  
-   - On reservation success, trigger confirmation email
-
-3. **Polish the UI**  
-   - Add better icons, restaurant ratings, dynamic hero sections  
-   - Improve the animations between screens
-
-4. **Bug Fixes / QA**  
-   - Final cross-platform testing (iOS/Android)
-   - Fix any overflow/scrolling issues
-
-5. **Submission Readiness**
-   - Create video demo
-   - Include ERD and system diagrams in the repo
-
----
-
-## 🧠 Technologies
+## Technologies Used
 
 - React Native (Expo)
-- React Navigation
-- AsyncStorage
 - Node.js / Express
 - MariaDB
 - Sequelize ORM
-- JWT Authentication
-- bcrypt.js
+- React Navigation
+- AsyncStorage
+- JWT for authentication
+- bcrypt.js for password hashing
 
 ---
 
-## 📁 Project Structure
+## Installation & Setup Guide
+
+> This guide assumes you're starting on a fresh machine (Mac or Windows) and cloning the project into `~/Desktop/College/servme`.
+
+### 1. Prerequisites
+
+- [Node.js](https://nodejs.org/) (v18+ recommended)
+- [Expo CLI](https://docs.expo.dev/get-started/installation/)
+  ```bash
+  npm install -g expo-cli
+  ```
+- [MariaDB](https://mariadb.org/) installed locally
+- A GitHub SSH key configured if cloning via SSH (e.g., `gas-mac`)
+
+---
+
+## Step-by-Step Setup
+
+### 2. Clone the Repository
+```bash
+cd ~/Desktop/College
+git clone git@github.com:gaswiz/servme.git
+cd servme
+```
+
+---
+
+### 3. Backend Setup
+
+#### Navigate to the backend directory:
+```bash
+cd backend
+```
+
+#### Install dependencies:
+```bash
+npm install
+```
+
+#### Create a `.env` file:
+```bash
+cp .env.example .env
+```
+Edit the `.env` file and set the following values:
+```env
+PORT=3001
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=your_mariadb_password
+DB_NAME=servme_db
+JWT_SECRET=yourcustomsecret123
+```
+
+#### Import the Database Schema (Optional)
+If a backup is provided:
+```bash
+mysql -u root -p servme_db < ../database_backup/servme_backup.sql
+```
+
+#### Start the backend server:
+```bash
+npm run dev
+```
+
+The backend will now run at `http://localhost:3001`
+
+---
+
+### 4. Ngrok for Public URL (for mobile access)
+
+In a separate terminal window:
+```bash
+npx ngrok http 3001
+```
+
+Copy the HTTPS URL generated (e.g., `https://abc123.ngrok-free.app`) and place it in your root `.env` file:
+```
+BASE_URL=https://abc123.ngrok-free.app
+```
+
+> You must restart Expo after modifying `.env`.
+
+---
+
+### 5. Frontend Setup
+
+#### Navigate back to project root:
+```bash
+cd ..
+```
+
+#### Install frontend dependencies:
+```bash
+npm install
+```
+
+#### Run Expo project:
+```bash
+npx expo start
+```
+
+> You must have the Expo Go app installed on your iPhone or Android device. Scan the QR code shown in the terminal or browser to launch the app.
+
+---
+
+## Development Notes
+
+- Project is optimized for **mobile** use. Web (`expo start --web`) works but may experience session issues.
+- All API requests dynamically read `BASE_URL` from `.env` using:
+  ```js
+  import { BASE_URL } from '@env';
+  ```
+- `AsyncStorage` is used to store token, userId, and role.
+- On web, a mock `storage.js` handles AsyncStorage in-memory only — browser refresh clears it.
+- Ensure your firewall or antivirus does not block ngrok or port 3001.
+
+---
+
+## Login Test Users
+
+| Email            | Password | Role   |
+|------------------|----------|--------|
+| admin@gmail.com  | admin    | admin  |
+| user1@gmail.com  | user1    | user   |
+| user2@gmail.com  | user2    | user   |
+
+> Passwords are securely hashed in the database.
+
+---
+
+## Project Structure
 
 ```
+servme/
 ├── backend/
 │   ├── config/
 │   ├── controllers/
 │   ├── middleware/
 │   ├── models/
 │   ├── routes/
-│   └── server.js
-├── frontend/
-│   ├── components/
-│   │   └── Auth/, Restaurant/, Home/, Reservation/
-│   ├── assets/images/
-│   └── App.js
-├── README.md
+│   ├── server.js
+│   └── .env
+├── assets/images/
+│   └── Pizza/, Sushi/, Fast/
+├── components/
+│   └── Auth/, Restaurants/, Home/, Reservation/
+├── database_backup/
+├── screens/
+│   └── HomeScreen.js, LoginScreen.js, AccountScreen.js, etc.
+├── storage.js
+├── App.js
+├── .env
+├── package.json
+└── README.md
 ```
 
 ---
 
-## 👨‍💻 Author
+## Contact
 
-**Konstantinos Panagiotaropoulos**  
-Final Year BSc Computer Science | CN6035 Project
+For issues, suggestions, or contributions:
+- GitHub: [gaswiz/servme](https://github.com/gaswiz/servme)
+- Author: **Konstantinos Panagiotaropoulos**, Final Year BSc Computer Science — CN6035 Project
