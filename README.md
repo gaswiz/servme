@@ -87,19 +87,4 @@ For issues, suggestions, or contributions:
 - **Author**: **Konstantinos Panagiotaropoulos**, Final Year BSc Computer Science — CN6035 Project
 ```
 
----
-
-### Steps to Create the New `README.md`:
-
-1. Create a new `README.md` file in the root of your project.
-2. Copy and paste the content above into your new `README.md` file.
-3. Commit and push the new `README.md` to your GitHub repository.
-
-### Command to Commit and Push:
-
-```bash
-git add README.md
-git commit -m "Added project overview README and linked installation guide"
-git push origin main
-```
 
