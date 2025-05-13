@@ -68,6 +68,10 @@ servme/
 ├── components/
 │   └── Auth/, Restaurants/, Home/, Reservation/
 ├── database\_backup/
+├── postman/
+│   ├── ServMe\_CN6035\_API\_Full\_Collection.json
+│   ├── ServMe\_Environment.json
+│   └── README.md (collection documentation)
 ├── screens/
 │   └── HomeScreen.js, LoginScreen.js, AccountScreen.js, etc.
 ├── storage.js
@@ -78,6 +82,8 @@ servme/
 
 ```
 
+> The `postman/` folder contains a fully documented Postman collection and environment file, which can be used to test all backend API endpoints independently of the frontend app.
+
 ---
 
 ## Contact
@@ -85,3 +91,4 @@ servme/
 For issues, suggestions, or contributions:
 - **GitHub**: [ServMe Repo](https://github.com/gaswiz/servme)
 - **Author**: **Konstantinos Panagiotaropoulos**, Final Year BSc Computer Science — CN6035 Project
+```
