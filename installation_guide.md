@@ -146,13 +146,14 @@ npx expo start
 
 ## Login Test Users
 
-| Email                                     | Password | Role  |
-| ----------------------------------------- | -------- | ----- |
-| [admin@gmail.com](mailto:admin@gmail.com) | admin    | admin |
-| [user1@gmail.com](mailto:user1@gmail.com) | user1    | user  |
-| [user2@gmail.com](mailto:user2@gmail.com) | user2    | user  |
+| Email                                       | Password | Role  |
+| ------------------------------------------- | -------- | ----- |
+| [kostas@gmail.com](mailto:kostas@gmail.com) | user1    | user  |
+| [john@gmail.com](mailto:john@gmail.com)     | admin1   | admin |
 
+> These accounts are preloaded for testing purposes.
 > Passwords are securely hashed in the database.
+> No reservations are currently placed — please create one manually via the app or Postman.
 
 ---
 
