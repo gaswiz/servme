@@ -1,6 +1,10 @@
+
+````md
 # ServMe - Installation Guide
 
 This guide will walk you through the process of setting up and running the **ServMe** application on your local machine. ServMe is a full-stack restaurant reservation app built with **React Native (Expo)** for the frontend and **Node.js with MariaDB** for the backend.
+
+---
 
 ## Prerequisites
 
@@ -196,3 +200,8 @@ You may be missing or using the wrong token. Log in again and ensure Authorizati
 
 * GitHub: [gaswiz/servme](https://github.com/gaswiz/servme)
 * Author: Konstantinos Panagiotaropoulos, Final Year BSc Computer Science — CN6035 Project
+
+```
+
+Let me know if you'd like me to commit this file now.
+```
