@@ -2,8 +2,6 @@
 
 This guide will walk you through the process of setting up and running the **ServMe** application on your local machine. ServMe is a full-stack restaurant reservation app built with **React Native (Expo)** for the frontend and **Node.js with MariaDB** for the backend.
 
----
-
 ## Prerequisites
 
 Before you begin, make sure you have the following installed on your machine:
