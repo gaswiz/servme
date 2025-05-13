@@ -1,0 +1,403 @@
+{
+	"info": {
+		"_postman_id": "d350f5bc-0a5b-4bd9-8a2e-65e4f0befc7f",
+		"name": "ServMe - CN6035 Full API Collection",
+		"description": "This Postman collection contains a complete test suite for the **ServMe** restaurant reservation system. It is designed for **automated or manual API testing** of all available backend routes, supporting authentication, user management, restaurant CRUD operations, and reservation flow.\n\nThis collection is intended for use by developers, testers, or academic evaluators working with the ServMe project.\n\n---\n\n### Contents\n\nThe collection is organized into logical folders:\n\n- **Auth**: Registration and login endpoints (`/api/auth`)\n    \n- **Users**: Fetch current user profile and view all users (admin only)\n    \n- **Restaurants**: Full CRUD operations for managing restaurants (admin only)\n    \n- **Reservations**: Availability check, reservation creation, user reservation lookup, and cancellation\n    \n\nEach folder contains:\n\n- Requests with sample payloads\n    \n- Saved variables (`{{BASE_URL}}`, `{{token}}`, `{{userId}}`)\n    \n- Proper headers (`application/json`)\n    \n- Automated test scripts to save tokens after login\n    \n\n---\n\n### Setup Instructions\n\n1. **Import both files** into Postman:\n    \n    - `ServMe_CN6035_API_Full_Collection.json`\n        \n    - `ServMe_Environment.json`\n        \n2. **Activate the environment**:\n    \n    Select `ServMe Environment` from the top-right dropdown.\n    \n3. **Set BASE_URL**:\n    \n    Update `BASE_URL` to match your current `ngrok` HTTPS URL (e.g. `https://abcd1234.ngrok-free.app`).\n    \n4. **Run Login Request**:\n    \n    Use `Login (Kostas)` or `Login (Admin)` to populate token and user context for all other secured routes.\n    \n\n---\n\n### Test Accounts\n\n| Email | Password | Role |\n| --- | --- | --- |\n| [kostas@gmail.com](https://mailto:kostas@gmail.com) | user1 | user |\n| [john@gmail.com](https://mailto:john@gmail.com) | admin1 | admin |\n\n> Passwords are hashed and saved in the MariaDB database. The system starts clean (no reservations). \n  \n\n---\n\n### Best Practices\n\n- Always login before testing authenticated routes.\n    \n- Use `GET /users/:id` to confirm session and identity.\n    \n- Use `check?restaurant=` before creating reservations to avoid capacity errors.\n    \n\n---\n\n### Debugging Tips\n\n- **400 errors** usually mean:\n    \n    - Missing fields\n        \n    - Incorrect headers (`Content-Type`)\n        \n    - Invalid JWT or unauthenticated session\n        \n- **403 errors** indicate permission issues (e.g. trying to access admin-only routes without admin token).\n    \n\n---\n\n### Academic Notes\n\n- This Postman collection can be used to validate correctness of API design, structure, and security.\n    \n- Designed for the CN6035 Mobile & Distributed Systems project at the undergraduate level.\n    \n- The collection facilitates full manual and automated test flows without requiring the frontend to be active.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "40917207"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Register",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Test\",\n  \"surname\": \"User\",\n  \"phone\": \"1234567890\",\n  \"email\": \"testuser@mail.com\",\n  \"password\": \"test123\"\n}"
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/auth/register",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login (User)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"const res = pm.response.json();",
+									"pm.environment.set('token', res.token);",
+									"pm.environment.set('userId', res.id);",
+									"pm.environment.set('role', res.role);"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"kostas@gmail.com\",\n  \"password\": \"user1\"\n}"
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/auth/login",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login (Admin)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"john@gmail.com\",\n  \"password\": \"admin1\"\n}"
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/auth/login",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "This folder includes requests related to user authentication for the **ServMe** reservation platform. It simulates the user registration and login flow via HTTP `POST` methods.\n\n### Included Requests\n\n#### `POST /api/auth/register`\n\nRegisters a new user in the system.  \n**Required fields** (JSON Body):\n\n``` json\n{\n  \"name\": \"FirstName\",\n  \"surname\": \"LastName\",\n  \"phone\": \"69XXXXXXXXX\",\n  \"email\": \"example@mail.com\",\n  \"password\": \"yourpassword\"\n}\n\n ```\n\nExpected response:\n\n- `201 Created` on success\n    \n- Includes: `token`, `id`, `role`\n    \n- `400 Bad Request` if email is already used or fields are missing\n    \n\n---\n\n#### `POST /api/auth/login`\n\nAuthenticates a user and returns a JWT token.  \n**Required fields**:\n\n``` json\n{\n  \"email\": \"example@mail.com\",\n  \"password\": \"yourpassword\"\n}\n\n ```\n\nExpected response:\n\n- `200 OK` on success\n    \n- Includes: `token`, `id`, `role`\n    \n- `400 Bad Request` if credentials are invalid\n    \n\nUpon successful login, the Postman collection uses test scripts to auto-populate the following environment variables:\n\n- `token` — JWT used for authenticated requests\n    \n- `userId` — User ID for profile and reservation lookup\n    \n- `role` — Role of the user (`user` or `admin`)\n    \n\n---\n\n## Usage Notes\n\n- Make sure to select the correct environment (`ServMe Environment`) in the top-right dropdown.\n    \n- Ensure the `BASE_URL` variable points to your current `ngrok` HTTPS URL.\n    \n- Tokens must be manually passed into the `Authorization` header for secured endpoints if not using environment scripting.\n    \n\n---\n\n## FAQ\n\n**Q: Why do I receive \"Invalid email or password\" even if the credentials are correct?**  \nA: Ensure the user was registered properly via `/register`. If you inserted the user directly into MariaDB, the password must be hashed using `bcrypt`. Plain text passwords will not match.\n\n---\n\n**Q: Why are the** **`token`****,** **`userId`****, and** **`role`** **not saved after login?**  \nA: This happens if no environment is selected in Postman. Click the environment dropdown (top right) and select `ServMe Environment` before sending the request.\n\n---\n\n**Q: Why do I get** **`400 Bad Request`** **when sending a login or register request?**  \nA: This typically happens when:\n\n- The `Content-Type` header is not set to `application/json`\n    \n- Required fields are missing in the body\n    \n- You mistakenly use form-data instead of raw JSON\n    \n\n---\n\n**Q: How can I simulate the login flow of the app using Postman?**  \nA: Use the `Login as Kostas (User)` or `Login as John (Admin)` requests. The JWT and user context will be saved to environment variables, allowing you to test protected routes directly."
+		},
+		{
+			"name": "Users",
+			"item": [
+				{
+					"name": "Get My Info",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{BASE_URL}}/api/users/{{userId}}",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"{{userId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Users (Admin)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{BASE_URL}}/api/users",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"users"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "This folder includes API requests related to retrieving user information in the **ServMe** reservation platform.\n\n### Included Requests\n\n#### `GET /api/users/:id` – Get My Info\n\nFetches the full profile of a specific user by ID.\n\n**Usage:**\n\n- Requires an authenticated user (`token` in Authorization header).\n    \n- The `:id` must match the logged-in user's ID (auto-filled via the `userId` environment variable).\n    \n\n**Returns:**\n\n``` json\n{\n  \"id\": 1,\n  \"name\": \"Kostas\",\n  \"surname\": \"Panagiotaropoulos\",\n  \"email\": \"kostas@gmail.com\",\n  \"phone\": \"6934567890\",\n  \"role\": \"user\"\n}\n\n ```\n\n---\n\n#### `GET /api/users` – Get All Users (Admin Only)\n\nReturns a list of all registered users in the system.\n\n**Usage:**\n\n- Requires `admin` role.\n    \n- Make sure the logged-in token belongs to a user with `role: admin`.\n    \n\n**Returns:**  \n  \nAn array of user objects:\n\n``` json\n[\n  {\n    \"id\": 1,\n    \"name\": \"Kostas\",\n    \"email\": \"kostas@gmail.com\",\n    \"role\": \"user\"\n  },\n  {\n    \"id\": 2,\n    \"name\": \"John\",\n    \"email\": \"john@gmail.com\",\n    \"role\": \"admin\"\n  }\n]\n\n ```\n\n---\n\n## Usage Notes\n\n- The `token` is automatically applied if the login request was used first and the environment is active.\n    \n- These requests are useful for validating session data, debugging, or reviewing user roles during testing.\n    \n\n---\n\n## FAQ\n\n**Q: Why do I get a 401 Unauthorized error?**  \n  \nA: The request was sent without a valid token. Ensure you’ve logged in via Postman and that the token is set in the environment.\n\n---\n\n**Q: Why do I get a 403 Forbidden error when accessing all users?**  \n  \nA: Only admin users can fetch all user accounts. Make sure the login token belongs to the admin (e.g. `john@gmail.com`).\n\n---\n\n**Q: How do I verify that the user data is correct?**  \n  \nA: Use the `/users/:id` route with the `userId` stored in your environment after login. The returned values should match the test users in your database."
+		},
+		{
+			"name": "Restaurants",
+			"item": [
+				{
+					"name": "Get All Restaurants",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/restaurants",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"restaurants"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Restaurant (Admin)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Burger Max\",\n  \"description\": \"Test burger joint\",\n  \"image\": \"https://via.placeholder.com/150\"\n}"
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/restaurants",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"restaurants"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Restaurant (Admin)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Burger Max Updated\",\n  \"description\": \"Updated description\",\n  \"image\": \"https://via.placeholder.com/150\"\n}"
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/restaurants/1",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"restaurants",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Restaurant (Admin)",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{BASE_URL}}/api/restaurants/1",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"restaurants",
+								"1"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "This folder contains API requests related to restaurant retrieval and management within the **ServMe** reservation system.\n\nIt includes both public (open to all users) and admin-restricted actions for full CRUD operations on restaurant entries.\n\n---\n\n### Included Requests\n\n#### `GET /api/restaurants` – Get All Restaurants\n\nReturns a list of all available restaurants in the system.\n\n**Usage:**\n\n- No authentication required.\n    \n- Supports use in home screen listing or category-specific filtering.\n    \n\n**Returns:**\n\n``` json\n[\n  {\n    \"id\": 1,\n    \"name\": \"Pizza Palace\",\n    \"description\": \"Top-notch pizza restaurant.\",\n    \"category\": \"Pizza\",\n    \"image\": \"https://...\"\n  },\n  ...\n]\n\n ```\n\n---\n\n#### `POST /api/restaurants` – Create Restaurant _(Admin only)_\n\nAdds a new restaurant to the database.\n\n**Required JSON Body:**\n\n``` json\n{\n  \"name\": \"New Restaurant\",\n  \"description\": \"Short intro text\",\n  \"image\": \"https://link.to/image.jpg\",\n  \"category\": \"Pizza\"\n}\n\n ```\n\n**Notes:**\n\n- Requires `Authorization` header with admin token.\n    \n- Category must be one of: `\"Pizza\"`, `\"Sushi\"`, `\"Fast Food\"`.\n    \n\n---\n\n#### `PUT /api/restaurants/:id` – Update Restaurant _(Admin only)_\n\nUpdates an existing restaurant’s information.\n\n**Required JSON Body:**\n\n``` json\n{\n  \"name\": \"Updated Name\",\n  \"description\": \"Updated description\",\n  \"image\": \"https://link.to/updated.jpg\"\n}\n\n ```\n\n- Authentication via admin JWT required.\n    \n- `:id` should reference an existing restaurant.\n    \n\n---\n\n#### `DELETE /api/restaurants/:id` – Delete Restaurant _(Admin only)_\n\nDeletes a restaurant from the database.\n\n**Usage:**\n\n- Admin token required.\n    \n- Use with caution: deleted restaurants are removed permanently.\n    \n\n---\n\n## Usage Notes\n\n- Only `GET /api/restaurants` is public and used in most frontend screens (e.g. category tiles, restaurant list).\n    \n- All other routes require admin authentication and are intended for management actions.\n    \n- Ensure you use valid values for `category` field when creating or updating restaurants.\n    \n\n---\n\n## FAQ\n\n**Q: Why do I get a 401 or 403 error when creating/updating/deleting a restaurant?**  \n  \nA: These actions require admin privileges. Make sure you are logged in with the admin account (e.g., `john@gmail.com` with password `admin1`) and that the token is applied in the request.\n\n---\n\n**Q: What happens if I submit an invalid category?**  \n  \nA: You may receive a database validation error. Only `\"Pizza\"`, `\"Sushi\"`, and `\"Fast Food\"` are allowed as valid values for the `category` field.\n\n---\n\n**Q: Can I use these endpoints to seed the database manually?**  \n  \nA: Yes, the `POST` route is suitable for manual testing and creating new entries from Postman, especially during development or testing new categories."
+		},
+		{
+			"name": "Reservations",
+			"item": [
+				{
+					"name": "Create Reservation",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"restaurant\": \"Pizza\",\n  \"people\": 2,\n  \"date\": \"2025-05-14\",\n  \"time\": \"20:00\",\n  \"userId\": \"{{userId}}\"\n}"
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/reservations",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"reservations"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get My Reservations",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/reservations/user/{{userId}}",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"reservations",
+								"user",
+								"{{userId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Reservation",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{BASE_URL}}/api/reservations/1",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"reservations",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Check Availability",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/reservations/check?restaurant=Pizza",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"reservations",
+								"check"
+							],
+							"query": [
+								{
+									"key": "restaurant",
+									"value": "Pizza"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "This folder contains all reservation-related actions available in the **ServMe** platform. These endpoints allow users to make bookings, check availability, retrieve their own reservations, and delete them.\n\nMost routes require authentication via a valid JWT token.\n\n---\n\n### Included Requests\n\n#### `GET /api/reservations/check?restaurant=` – Check Availability\n\nChecks if a specific restaurant still has availability (max 10 reservations allowed).\n\n**Usage:**\n\n- Public route – no token required.\n    \n- Use this before submitting a reservation to prevent overbooking.\n    \n\n**Example Query:**\n\n```\nGET /api/reservations/check?restaurant=Napoli Express\n\n ```\n\n**Response:**\n\n``` json\n{\n  \"available\": true,\n  \"reserved\": 3\n}\n\n ```\n\n---\n\n#### `POST /api/reservations` – Create Reservation\n\nSubmits a new reservation for a specific restaurant, date, and time.\n\n**Authentication required.**  \n  \nThe user ID and token are pulled from the active environment.\n\n**Request body:**\n\n``` json\n{\n  \"restaurant\": \"Napoli Express\",\n  \"people\": 2,\n  \"date\": \"2025-05-18\",\n  \"time\": \"20:00\",\n  \"name\": \"Kostas\",\n  \"email\": \"kostas@gmail.com\",\n  \"phone\": \"6934567890\",\n  \"userId\": 1\n}\n\n ```\n\n**Response:**  \n  \nReturns the saved reservation object with ID.\n\n---\n\n#### `GET /api/reservations/user/:id` – Get My Reservations\n\nFetches all reservations made by a specific user.\n\n**Authentication required.**  \n  \nThe `:id` should match the user ID stored in the environment.\n\n**Response:**\n\n``` json\n[\n  {\n    \"id\": 12,\n    \"restaurant\": \"Napoli Express\",\n    \"people\": 2,\n    \"date\": \"2025-05-18\",\n    \"time\": \"20:00\"\n  }\n]\n\n ```\n\n---\n\n#### `DELETE /api/reservations/:id` – Cancel Reservation\n\nDeletes a reservation by ID.\n\n**Authentication required.**\n\n**Use case:**\n\n- Called from the \"My Reservations\" section in the Account screen.\n    \n- Recommended for testing the full reservation flow.\n    \n\n---\n\n## Usage Notes\n\n- All reservation logic (including availability limit) is synced with the backend database.\n    \n- `check?restaurant=...` should always be called before submitting a new reservation to avoid rejections.\n    \n- The mobile app only allows 10 reservations per restaurant (enforced in backend).\n    \n- Dates must be in `YYYY-MM-DD` format; time in `HH:MM`.\n    \n\n---\n\n## FAQ\n\n**Q: Why do I receive “fully booked” error when submitting a reservation?**  \n  \nA: The restaurant already has 10 active reservations. Try choosing a different one or testing with `DELETE` to free up space.\n\n---\n\n**Q: What if I enter a wrong restaurant name in the check endpoint?**  \n  \nA: The backend will still respond but may return `available: true` by default since the restaurant won’t be found. Ensure the spelling matches exactly.\n\n---\n\n**Q: Do I need to manually include userId?**  \n  \nA: Yes — for Postman testing purposes, include the `userId` field manually in the request body. In the app, this is filled automatically via `AsyncStorage`."
+		}
+	],
+	"variable": [
+		{
+			"key": "BASE_URL",
+			"value": "https://cdd2-37-6-226-73.ngrok-free.app"
+		},
+		{
+			"key": "token",
+			"value": ""
+		},
+		{
+			"key": "userId",
+			"value": ""
+		},
+		{
+			"key": "role",
+			"value": ""
+		}
+	]
+}
