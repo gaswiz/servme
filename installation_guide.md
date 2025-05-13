@@ -9,14 +9,14 @@ This guide will walk you through the process of setting up and running the **Ser
 Before you begin, make sure you have the following installed on your machine:
 
 1. **Node.js (v18+ recommended)**: [Download Node.js](https://nodejs.org/)
-2. **Expo CLI**: This is required for building and running the React Native frontend.
-   - To install Expo CLI, open your terminal and run:
-     ```bash
-     npm install -g expo-cli
-     ```
-3. **MariaDB**: Download and install from [mariadb.org](https://mariadb.org/).
-4. **ngrok**: Required to expose your local backend to the mobile app. [Download ngrok](https://ngrok.com/download).
-5. **Git**: Required for cloning the repository.
+2. **Expo CLI**: Required for running the React Native frontend.
+   ```bash
+   npm install -g expo-cli
+````
+
+3. **MariaDB**: Local database required. [Download MariaDB](https://mariadb.org/)
+4. **ngrok**: Used to expose your local backend to the frontend. [Download ngrok](https://ngrok.com/download)
+5. **Git**: Required to clone the repository.
 
 ---
 
@@ -24,29 +24,24 @@ Before you begin, make sure you have the following installed on your machine:
 
 ### 1. Clone the Repository
 
-Navigate to your **Desktop/servme** directory:
-
 ```bash
 cd ~/Desktop
 git clone git@github.com:gaswiz/servme.git
 cd servme
-````
+```
 
 ---
 
 ### 2. Backend Setup
 
 ```bash
-cd Desktop/servme/backend
-```
-
-Install dependencies:
-
-```bash
+cd backend
 npm install
 ```
 
-The `.env` file is already present. Update it with your local database values:
+#### Configure Environment Variables
+
+The `.env` file is already included. You just need to update it:
 
 ```env
 PORT=3001
@@ -57,13 +52,13 @@ DB_NAME=servme
 JWT_SECRET=yourcustomsecret123
 ```
 
-(Optional) Import the backup SQL:
+#### Import Database (Optional)
 
 ```bash
 mysql -u root -p servme < ../database_backup/servme_backup.sql
 ```
 
-Start the backend:
+#### Start the Backend Server
 
 ```bash
 npm run dev
@@ -71,21 +66,31 @@ npm run dev
 
 ---
 
-### 3. Ngrok Setup
+### 3. ngrok Setup
 
-Expose your backend for mobile access:
+#### If this is your first time using ngrok:
+
+1. Create a free account at [https://ngrok.com/](https://ngrok.com/)
+2. Log in and copy your **Auth Token** from: [https://dashboard.ngrok.com/get-started/setup](https://dashboard.ngrok.com/get-started/setup)
+3. In your terminal, run:
+
+   ```bash
+   ngrok config add-authtoken <your-token-here>
+   ```
+
+#### Then expose your backend:
 
 ```bash
 npx ngrok http 3001
 ```
 
-Copy the HTTPS forwarding address and update your project root `.env`:
+Copy the generated HTTPS URL (e.g., `https://abc123.ngrok-free.app`) and update your `.env` file in the root directory:
 
 ```env
 BASE_URL=https://abc123.ngrok-free.app
 ```
 
-> Each time you restart ngrok, this URL changes.
+> Every time you restart ngrok, you must update this URL.
 
 ---
 
@@ -98,14 +103,14 @@ The `postman/` folder includes:
 
 To use:
 
-1. Open **Postman**
+1. Open Postman
 2. Import both files
-3. Select the **ServMe Environment** in the top-right
-4. Update `BASE_URL` in the environment to match your ngrok URL
+3. Select the **ServMe Environment**
+4. Update `BASE_URL` to match your current ngrok URL
 5. Run `Login (Kostas)` or `Login (Admin)` to authenticate
-6. All tokens and IDs will be auto-saved to the environment
+6. Token, userId, and role will be saved to the environment automatically
 
-> All endpoints (auth, users, restaurants, reservations) are pre-documented inside Postman with usage instructions and expected responses.
+> All documentation and FAQs for the API endpoints are built into the Postman collection itself.
 
 ---
 
@@ -116,13 +121,14 @@ cd ..
 npm install
 ```
 
-Start the app:
+Start the Expo project:
 
 ```bash
 npx expo start
 ```
 
-Scan the QR code with **Expo Go** or run on an emulator (`a` or `i`).
+* Scan the QR code with **Expo Go**
+* Or press `a` (Android), `i` (iOS) to launch on emulator
 
 ---
 
@@ -133,7 +139,7 @@ Scan the QR code with **Expo Go** or run on an emulator (`a` or `i`).
 | [kostas@gmail.com](mailto:kostas@gmail.com) | user1    | user  |
 | [john@gmail.com](mailto:john@gmail.com)     | admin1   | admin |
 
-> No reservations are preloaded. Create one manually.
+> No reservations are preloaded. You can add them manually via the app or Postman.
 
 ---
 
@@ -152,7 +158,7 @@ servme/
 ├── screens/
 ├── App.js
 ├── .env
-├── README.md
+├── package.json
 └── installation_guide.md
 ```
 
@@ -162,27 +168,29 @@ servme/
 
 ### 1. How do I set up MariaDB?
 
-Install via [official website](https://mariadb.org/), then run:
-
 ```sql
 CREATE DATABASE servme;
 ```
 
-### 2. How do I generate a new ngrok URL?
+### 2. How do I regenerate my ngrok URL?
 
 ```bash
 npx ngrok http 3001
 ```
 
-### 3. How do I clear my session/token?
+### 3. How do I clear login session data?
 
 ```js
 await AsyncStorage.clear();
 ```
 
-### 4. Is this production-ready?
+### 4. Can I test without using the mobile app?
 
-No. This setup is for **development and academic testing** only.
+Yes. Use Postman to test all endpoints directly.
+
+### 5. Why does Postman return 401 or 403?
+
+You may be missing or using the wrong token. Log in again and ensure Authorization header is set.
 
 ---
 
@@ -190,4 +198,3 @@ No. This setup is for **development and academic testing** only.
 
 * GitHub: [gaswiz/servme](https://github.com/gaswiz/servme)
 * Author: Konstantinos Panagiotaropoulos, Final Year BSc Computer Science — CN6035 Project
-
