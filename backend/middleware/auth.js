@@ -21,26 +21,26 @@ import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 
 export const protect = async (req, res, next) => {
-  let token = req.headers.authorization?.split(' ')[1];
+  const [scheme, token] = (req.headers.authorization || '').split(' ');
 
-  if (!token) {
+  if (scheme !== 'Bearer' || !token) {
     return res.status(401).json({ message: 'Not authorized, token missing' });
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] });
 
     req.user = await User.findByPk(decoded.id, {
       attributes: ['id', 'name', 'email', 'role'],
     });
 
     if (!req.user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(401).json({ message: 'Not authorized' });
     }
 
     next();
   } catch (err) {
-    console.error('Auth Middleware Error:', err);
+    console.error('Auth Middleware Error:', err.name);
     res.status(401).json({ message: 'Invalid token' });
   }
 };
@@ -51,4 +51,14 @@ export const adminOnly = (req, res, next) => {
   }
 
   next();
+};
+
+// Allows the request when the authenticated user is an admin or owns the resource
+// identified by req.params[param].
+export const selfOrAdmin = (param = 'id') => (req, res, next) => {
+  if (req.user?.role === 'admin' || String(req.user?.id) === String(req.params[param])) {
+    return next();
+  }
+
+  return res.status(403).json({ message: 'Access denied' });
 };

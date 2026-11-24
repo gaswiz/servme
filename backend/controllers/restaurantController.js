@@ -5,7 +5,7 @@
 // Course Code: CN6035 - Mobile & Distributed Systems
 // Description:
 //    This controller provides full CRUD functionality for managing restaurants.
-//    It uses both raw SQL queries (via db.execute) and Sequelize (for fetching all).
+//    It uses the Sequelize Restaurant model (parameterized queries) for all operations.
 //
 // Usage:
 //    Used by restaurantRoutes.js for endpoints:
@@ -16,69 +16,79 @@
 //    - DELETE /api/restaurants/:id
 // ========================================================================================
 
-import db from '../config/db.js';
 import Restaurant from '../models/Restaurant.js';
+
+const pickFields = ({ name, description, image, category } = {}) => {
+  const fields = {};
+  if (name !== undefined) fields.name = name;
+  if (description !== undefined) fields.description = description;
+  if (image !== undefined) fields.image = image;
+  if (category !== undefined) fields.category = category;
+  return fields;
+};
 
 // CREATE restaurant
 export const createRestaurant = async (req, res) => {
-  const { name, description, image } = req.body;
+  const fields = pickFields(req.body);
+
+  if (typeof fields.name !== 'string' || !fields.name.trim()) {
+    return res.status(400).json({ message: 'name is required' });
+  }
 
   try {
-    const [result] = await db.execute(
-      'INSERT INTO restaurants (name, description, image) VALUES (?, ?, ?)',
-      [name, description, image]
-    );
-
-    res.status(201).json({ id: result.insertId, name, description, image });
+    const restaurant = await Restaurant.create(fields);
+    res.status(201).json(restaurant);
   } catch (error) {
-    res.status(500).json({ message: 'Error creating restaurant', error });
+    console.error('[restaurantController] Error creating restaurant:', error.message);
+    res.status(500).json({ message: 'Error creating restaurant' });
   }
 };
 
-// GET all restaurants (Sequelize)
+// GET all restaurants
 export const getAllRestaurants = async (req, res) => {
-  console.log('[restaurantController] getAllRestaurants called');
   try {
     const restaurants = await Restaurant.findAll();
-    console.log('[restaurantController] Found restaurants:', restaurants);
     res.json(restaurants);
   } catch (error) {
-    console.error('[restaurantController] Error fetching restaurants:', error);
-    res.status(500).json({ message: 'Error fetching restaurants', error });
+    console.error('[restaurantController] Error fetching restaurants:', error.message);
+    res.status(500).json({ message: 'Error fetching restaurants' });
   }
 };
 
-// GET restaurant by ID (raw SQL)
+// GET restaurant by ID
 export const getRestaurantById = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const [rows] = await db.execute('SELECT * FROM restaurants WHERE id = ?', [id]);
+    const restaurant = await Restaurant.findByPk(id);
 
-    if (rows.length === 0) {
+    if (!restaurant) {
       return res.status(404).json({ message: 'Restaurant not found' });
     }
 
-    res.json(rows[0]);
+    res.json(restaurant);
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching restaurant', error });
+    console.error('[restaurantController] Error fetching restaurant:', error.message);
+    res.status(500).json({ message: 'Error fetching restaurant' });
   }
 };
 
 // UPDATE restaurant
 export const updateRestaurant = async (req, res) => {
   const { id } = req.params;
-  const { name, description, image } = req.body;
 
   try {
-    await db.execute(
-      'UPDATE restaurants SET name = ?, description = ?, image = ? WHERE id = ?',
-      [name, description, image, id]
-    );
+    const restaurant = await Restaurant.findByPk(id);
 
+    if (!restaurant) {
+      return res.status(404).json({ message: 'Restaurant not found' });
+    }
+
+    await restaurant.update(pickFields(req.body));
     res.json({ message: 'Restaurant updated successfully' });
   } catch (error) {
-    res.status(500).json({ message: 'Error updating restaurant', error });
+    console.error('[restaurantController] Error updating restaurant:', error.message);
+    res.status(500).json({ message: 'Error updating restaurant' });
   }
 };
 
@@ -87,9 +97,15 @@ export const deleteRestaurant = async (req, res) => {
   const { id } = req.params;
 
   try {
-    await db.execute('DELETE FROM restaurants WHERE id = ?', [id]);
+    const deleted = await Restaurant.destroy({ where: { id } });
+
+    if (deleted === 0) {
+      return res.status(404).json({ message: 'Restaurant not found' });
+    }
+
     res.json({ message: 'Restaurant deleted successfully' });
   } catch (error) {
-    res.status(500).json({ message: 'Error deleting restaurant', error });
+    console.error('[restaurantController] Error deleting restaurant:', error.message);
+    res.status(500).json({ message: 'Error deleting restaurant' });
   }
 };

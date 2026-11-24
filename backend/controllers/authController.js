@@ -4,7 +4,7 @@
 // Author: Konstantinos Panagiotaropoulos
 // Course Code: CN6035 - Mobile & Distributed Systems
 // Description: 
-//    This controller handles user registration and login using bcrypt for password
+//    This controller handles user registration and login using bcryptjs for password
 //    hashing and JWT for token-based authentication. It provides endpoints for
 //    securely signing up and logging in users.
 //
@@ -13,24 +13,43 @@
 // ========================================================================================
 
 import User from '../models/User.js';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
-export const registerUser = async (req, res) => {
-  console.log('[authController] registerUser called');
-  console.log('Request body:', req.body);
+const SALT_ROUNDS = 12;
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-  const { name, surname, phone, email, password } = req.body;
+const signToken = (id) =>
+  jwt.sign({ id }, process.env.JWT_SECRET, {
+    algorithm: 'HS256',
+    expiresIn: process.env.JWT_EXPIRES_IN || '7d',
+  });
+
+const isNonEmptyString = (v) => typeof v === 'string' && v.trim().length > 0;
+
+export const registerUser = async (req, res) => {
+  const { name, surname, phone, email, password } = req.body || {};
+
+  if (![name, surname, phone, email, password].every(isNonEmptyString)) {
+    return res.status(400).json({ message: 'name, surname, phone, email and password are required' });
+  }
+
+  if (!EMAIL_RE.test(email)) {
+    return res.status(400).json({ message: 'Invalid email address' });
+  }
+
+  if (password.length < 6 || password.length > 72) {
+    return res.status(400).json({ message: 'Password must be between 6 and 72 characters' });
+  }
 
   try {
     const existingUser = await User.findOne({ where: { email } });
 
     if (existingUser) {
-      console.log('[authController] Email already in use:', email);
       return res.status(400).json({ message: 'Email already exists' });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
 
     const newUser = await User.create({
       name,
@@ -41,7 +60,7 @@ export const registerUser = async (req, res) => {
       role: 'user',
     });
 
-    const token = jwt.sign({ id: newUser.id }, process.env.JWT_SECRET);
+    const token = signToken(newUser.id);
     console.log('[authController] User created with ID:', newUser.id);
 
     res.status(201).json({
@@ -50,38 +69,32 @@ export const registerUser = async (req, res) => {
       role: newUser.role,
     });
   } catch (error) {
-    console.error('[authController] Registration error:', error);
+    console.error('[authController] Registration error:', error.message);
     res.status(500).json({ message: 'Server error during registration' });
   }
 };
 
 export const loginUser = async (req, res) => {
-  console.log('[authController] loginUser called');
-  console.log('Request body:', req.body);
+  const { email, password } = req.body || {};
 
-  const { email, password } = req.body;
+  if (!isNonEmptyString(email) || !isNonEmptyString(password)) {
+    return res.status(400).json({ message: 'Invalid email or password' });
+  }
 
   try {
-    const allUsers = await User.findAll();
-    console.log('[authController] All users:', allUsers.map(u => u.email));
-
     const user = await User.findOne({ where: { email } });
 
-    console.log('[authController] Found user:', user ? user.email : 'Not found');
-
     if (!user) {
-      console.log('[authController] User not found for email:', email);
       return res.status(400).json({ message: 'Invalid email or password' });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
-      console.log('[authController] Incorrect password for user:', email);
       return res.status(400).json({ message: 'Invalid email or password' });
     }
 
-    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET);
+    const token = signToken(user.id);
     console.log('[authController] Login successful for user ID:', user.id);
 
     res.status(200).json({
@@ -90,7 +103,7 @@ export const loginUser = async (req, res) => {
       role: user.role,
     });
   } catch (error) {
-    console.error('[authController] Login error:', error);
+    console.error('[authController] Login error:', error.message);
     res.status(500).json({ message: 'Server error during login' });
   }
 };

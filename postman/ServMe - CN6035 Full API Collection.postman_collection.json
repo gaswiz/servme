@@ -385,7 +385,7 @@
 	"variable": [
 		{
 			"key": "BASE_URL",
-			"value": "https://cdd2-37-6-226-73.ngrok-free.app"
+			"value": "http://localhost:3001"
 		},
 		{
 			"key": "token",

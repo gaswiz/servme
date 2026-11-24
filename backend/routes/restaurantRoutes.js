@@ -6,6 +6,7 @@
 // Description:
 //    Defines all API routes related to restaurant data management.
 //    Routes support full CRUD operations: create, read, update, and delete.
+//    Write operations require an authenticated admin.
 //
 // Routes:
 //    - POST   /api/restaurants     → createRestaurant
@@ -23,13 +24,14 @@ import {
   updateRestaurant,
   deleteRestaurant,
 } from '../controllers/restaurantController.js';
+import { protect, adminOnly } from '../middleware/auth.js';
 
 const router = express.Router();
 
-router.post('/', createRestaurant);
+router.post('/', protect, adminOnly, createRestaurant);
 router.get('/', getAllRestaurants);
 router.get('/:id', getRestaurantById);
-router.put('/:id', updateRestaurant);
-router.delete('/:id', deleteRestaurant);
+router.put('/:id', protect, adminOnly, updateRestaurant);
+router.delete('/:id', protect, adminOnly, deleteRestaurant);
 
 export default router;

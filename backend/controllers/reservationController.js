@@ -18,14 +18,20 @@
 // ========================================================================================
 
 import Reservation from '../models/Reservation.js';
-import db from '../config/db.js';
 
 export const createReservation = async (req, res) => {
-  console.log('[reservationController] createReservation called');
-  console.log('Request body:', req.body);
+  const { restaurant, people, date, time } = req.body || {};
+  // Always bind the reservation to the authenticated user; never trust a client-supplied userId.
+  const userId = req.user.id;
+  const peopleCount = Number(people);
 
-  const { restaurant, people, date, time } = req.body;
-  const userId = req.user?.id || req.body.userId;
+  if (typeof restaurant !== 'string' || !restaurant.trim() || typeof date !== 'string' || typeof time !== 'string') {
+    return res.status(400).json({ message: 'restaurant, date and time are required' });
+  }
+
+  if (!Number.isInteger(peopleCount) || peopleCount < 1 || peopleCount > 50) {
+    return res.status(400).json({ message: 'people must be a whole number between 1 and 50' });
+  }
 
   try {
     const existing = await Reservation.count({
@@ -40,7 +46,7 @@ export const createReservation = async (req, res) => {
     const reservation = await Reservation.create({
       userId,
       restaurant,
-      people,
+      people: peopleCount,
       date,
       time,
     });
@@ -48,7 +54,7 @@ export const createReservation = async (req, res) => {
     console.log('[reservationController] Reservation created:', reservation.id);
     res.status(201).json(reservation);
   } catch (error) {
-    console.error('[reservationController] Error creating reservation:', error);
+    console.error('[reservationController] Error creating reservation:', error.message);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -56,7 +62,9 @@ export const createReservation = async (req, res) => {
 export const getAllReservations = async (req, res) => {
   console.log('[reservationController] getAllReservations called');
   try {
-    const reservations = await Reservation.findAll();
+    // Admins see every reservation; regular users only their own.
+    const where = req.user.role === 'admin' ? {} : { userId: req.user.id };
+    const reservations = await Reservation.findAll({ where });
     res.json(reservations);
   } catch (error) {
     console.error('[reservationController] getAllReservations error:', error);
@@ -67,16 +75,22 @@ export const getAllReservations = async (req, res) => {
 export const deleteReservation = async (req, res) => {
   const { id } = req.params;
   try {
-    const deleted = await Reservation.destroy({ where: { id } });
+    const reservation = await Reservation.findByPk(id);
 
-    if (deleted === 0) {
+    if (!reservation) {
       return res.status(404).json({ message: 'Reservation not found' });
     }
+
+    if (req.user.role !== 'admin' && reservation.userId !== req.user.id) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
+    await reservation.destroy();
 
     res.json({ message: 'Reservation deleted' });
   } catch (err) {
     console.error('[reservationController] Error deleting reservation:', err);
-    res.status(500).json({ message: 'Error deleting reservation', error: err });
+    res.status(500).json({ message: 'Error deleting reservation' });
   }
 };
 
@@ -95,6 +109,11 @@ export const getUserReservations = async (req, res) => {
 
 export const checkCategoryAvailability = async (req, res) => {
   const { restaurant } = req.query;
+
+  if (typeof restaurant !== 'string' || !restaurant.trim()) {
+    return res.status(400).json({ message: 'restaurant query parameter is required' });
+  }
+
   console.log('[reservationController] checkCategoryAvailability called:', restaurant);
 
   try {

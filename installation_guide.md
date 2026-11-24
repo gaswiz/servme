@@ -42,7 +42,11 @@ npm install
 
 #### Configure Environment
 
-Edit the `.env` file:
+Copy the example file and fill in your own values (`.env` files are git-ignored and must never be committed):
+
+```bash
+cp .env.example .env
+```
 
 ```env
 PORT=3001
@@ -50,8 +54,14 @@ DB_HOST=localhost
 DB_USER=root
 DB_PASSWORD=your_password
 DB_NAME=servme
-JWT_SECRET=yourcustomsecret123
+# Required: a long random secret, e.g. node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
+JWT_SECRET=
+JWT_EXPIRES_IN=7d
+# Browser origins allowed by CORS (Expo web); native apps are unaffected
+CORS_ORIGIN=http://localhost:8081
 ```
+
+For the frontend, copy the root `.env.example` to `.env` and set `BASE_URL`.
 
 #### Import Sample Database
 

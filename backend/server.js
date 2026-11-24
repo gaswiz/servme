@@ -28,13 +28,24 @@ import restaurantRoutes from './routes/restaurantRoutes.js';
 
 dotenv.config();
 
+if (!process.env.JWT_SECRET) {
+  console.error('❌ JWT_SECRET is not set. Copy backend/.env.example to backend/.env and set it.');
+  process.exit(1);
+}
+
 const app = express();
+app.disable('x-powered-by');
 
 // Middleware
-app.use(cors({
-  origin: '*', // Change to 'http://localhost:8081' to limit access during dev
-}));
-app.use(express.json());
+// Allowed browser origins come from CORS_ORIGIN (comma-separated). Native mobile
+// clients do not send an Origin header and are unaffected.
+const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:8081')
+  .split(',')
+  .map((o) => o.trim())
+  .filter(Boolean);
+
+app.use(cors({ origin: allowedOrigins }));
+app.use(express.json({ limit: '100kb' }));
 app.use(morgan('dev'));
 
 // Routes
