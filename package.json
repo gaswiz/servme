@@ -45,5 +45,11 @@
     "react-native-dotenv": "^3.4.11",
     "typescript": "~5.8.3"
   },
-  "private": true
+  "private": true,
+  "overrides": {
+    "postcss": "^8.5.23",
+    "ws@8": "^8.20.2",
+    "uuid": "^11.1.1",
+    "sucrase": "^3.35.1"
+  }
 }
